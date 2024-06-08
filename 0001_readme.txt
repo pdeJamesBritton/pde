@@ -262,3 +262,15 @@ May 21st, last week I went to CHEO twice and and a missing son.
 wrist is better, cut down tree, did planting and work in garden.
 
 This week preparing for presentation and assignment
+
+
+May 21st to June 8th
+*Prepared for interview
+->did lots of work in garden
+- Verified that libraries (i.e. mlpack...) worked
+- set up github with yubikey
+- for easy of push/pull switched from https to ssh
+- in setting up git/github lost cpp file that I did make
+
+Plan for June 9th
+- work on skeleton of cpp bec_2d
