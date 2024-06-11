@@ -21,6 +21,8 @@ import matplotlib.pyplot as plt
 seed = np.random.randint(0,100000)
 print("seed: ", seed)
 
+#######
+# what is an appropriat file extention? .txt? .csv?
 save_params = False
 params1_filename = '2d_k_params1_' + str(seed) + '.npy'
 params2_filename = '2d_k_params2_' + str(seed) + '.npy'
@@ -55,6 +57,7 @@ t_interval = t_max - t_min
 exp_coeff = 60.0 #depends on size of t_interval
 
 key = random.PRNGKey(seed)
+print('key ', key)
 key,xkey,ykey,tkey,kkey,paramskey = random.split(key,num=6)
 
 learning_rate = 0.002
@@ -66,6 +69,7 @@ print_every_x_epochs = 5000
 def sigmoid(s):
     return jnp.tanh(s)
 
+#what diminsion does this return? int, double?
 def nn(params, x, y, t, k):
     nn_arch_len = len(nn_arch)
     w = params[: nn_arch[0]*dim]
@@ -90,7 +94,7 @@ def init_params(nn_arch,key):
     num_params = (dim + 1)*nn_arch[0]
     for i in range(1,len(nn_arch)):
         num_params += nn_arch[i]*(nn_arch[i-1] + 1)
-    params = random.normal(key, shape=(num_params,))
+    params = key, shape=(num_params,))
     return params
 
 def V(x,y,k):
@@ -233,7 +237,7 @@ total_time = np.zeros((nt_pts*num_time_intervals,1))
 
 start_time = time.time()
 for epoch in range(num_epochs+1):
-
+    print('key ', key)
     #update parameters
     grads = loss_grad_fast(params,x_coll,y_coll,t_coll,k_coll,t_min)
     updates, opt_state = optimizer.update(grads, opt_state)
