@@ -8,12 +8,10 @@
  * placing function (prototypes) definitions here
  */
 
+#ifndef BEC_2D_H
+#define BEC_2D_H
 
-#include <mlpack.hpp>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-
+#include "headers.h"
 
 /// @brief sets seed on interval [a,b], only call once
 /// @param a 
@@ -59,9 +57,11 @@ std::vector<std::string>paramsVfn(int seed){
 double sigmoid(double s){
     return std::tanh(s);
 }
-def init_params(nn_arch,key):
+
+// cannot do more until get more information
+def init_params(std::vector<int> nn_arch, std::vector<int> vKeys):
     num_params = (dim + 1)*nn_arch[0]
-    for i in range(1,len(nn_arch)):
+    for(int i : std::views::iota(1,nn_arch.size())
         num_params += nn_arch[i]*(nn_arch[i-1] + 1)
     params = key, shape=(num_params,))
     return params
@@ -87,9 +87,8 @@ def nn(params, x, y, t, k):
     return z
 
 
-def V(x,y,k):
-    v = 0.5*k*(x**2 + y**2)
-    return v
+double V(double x, double y,double k){
+    return 0.5*k*(x*x + y*y);}
 
 def ic_fn(t,t_min,t_max):
     a = 1.0/( jnp.exp(-exp_coeff*t_min) - jnp.exp(-exp_coeff*t_max))
@@ -111,3 +110,5 @@ def loss(params,x,y,t,k,t_min):
 
     loss_pde = jnp.mean(pde**2 + pde_x**2 + pde_y**2)
     return loss_pde
+
+#endif

@@ -272,5 +272,5 @@ May 21st to June 8th
 - for easy of push/pull switched from https to ssh
 - in setting up git/github lost cpp file that I did make
 
-Plan for June 9th
+Plan for week of June 9th
 - work on skeleton of cpp bec_2d
