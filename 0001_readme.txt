@@ -274,3 +274,10 @@ May 21st to June 8th
 
 Plan for week of June 9th
 - work on skeleton of cpp bec_2d
+
+
+June  - 14th
+filling in other happenings
+
+Today tested pytorch for cp -> torch
+	fixed bugs, got sample example to work
