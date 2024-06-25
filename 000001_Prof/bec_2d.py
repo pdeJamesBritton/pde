@@ -90,6 +90,8 @@ def nn(params, x, y, t, k):
     z = jnp.dot(w,z) + b
     return z
 
+
+#  Please clarify this function.  I cannot continue without it.
 def init_params(nn_arch,key):
     num_params = (dim + 1)*nn_arch[0]
     for i in range(1,len(nn_arch)):
