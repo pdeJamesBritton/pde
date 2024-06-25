@@ -8,6 +8,12 @@
  * placing function (prototypes) definitions here
  */
 
+
+/**
+ * TODO's
+ * make into proper header/cpp file set-up for good coding practice
+ * need to get clarification from prof.
+ */
 #ifndef BEC_2D_H
 #define BEC_2D_H
 
