@@ -18,9 +18,9 @@
 int main(){
     
     // Initialize random seed:
-    size_t set_seed;
-    mlpack::math::RandomSeed(set_seed);
-    int seed = mlpack::math::RandInt(0, 10000) + 1;    
+    int set_seed torch.random.seed();
+    torch.random.manual_seed(set_seed);
+    std::cout<<"the random seed is: "<< set_seed << std::endl;
 
     int dim, num_time_intervals, num_epochs, num_training_pts, desired_loss, nx_pts, ny_pts, nt_pts, nk_pts, x_min, x_max, y_min, y_max, t_min, t_max, k_min, k_max, t_interval, learning_rate, pring_every_x_epochs;
 

@@ -11,32 +11,9 @@
 #ifndef BEC_2D_H
 #define BEC_2D_H
 
+#include <torch/torch.h>
 #include "headers.h"
 
-/// @brief sets seed on interval [a,b], only call once
-/// @param a 
-/// @param b 
-/// @return int
-int seed(int a, int b, size_t seed){
-
-    // generate interger between a & b
-    int seed = mlpack::math::RandInt(a,b) + 1;
-    std::cout<< "Seed: " << seed << std::endl;
-    return seed;
-}
-/// @brief fills vector with random keys on interval [a, b]
-/// @param key 
-/// @param a 
-/// @param b 
-void setkeys(std::vector<int>key, int a, int b){
-    for( auto i : key)
-        i = mlpack::math::RandInt(a,b)+1;
-    
-    for(auto i : key)
-        std::cout<<"Keys " + std::to_string(i)<< std::endl;
-    
-    return;
-}
 
 
 /// @brief  makes a vector to store param file names
@@ -54,13 +31,13 @@ std::vector<std::string>paramsVfn(int seed){
 
 /// @brief
 /// 
-double sigmoid(double s){
-    return std::tanh(s);
+torch::Tensor sigmoid(torch::tensor s){
+    return torch.tanh(s);
 }
 
 // cannot do more until get more information
-def init_params(std::vector<int> nn_arch, std::vector<int> vKeys):
-    num_params = (dim + 1)*nn_arch[0]
+def init_params(std::vector<int> nn_arch, std::vector<int> vKeys, int dim):
+    num_params = (dim + 1) * nn_arch[0];
     for(int i : std::views::iota(1,nn_arch.size())
         num_params += nn_arch[i]*(nn_arch[i-1] + 1)
     params = key, shape=(num_params,))
@@ -87,15 +64,32 @@ def nn(params, x, y, t, k):
     return z
 
 
-double V(double x, double y,double k){
-    return 0.5*k*(x*x + y*y);}
+torch::Tensor V(double x, double y,double k){
+    return torch.mul( 0.5, torch.dot(torch.double(k),torch.add(torch.dot(torch.tensor([x]), torch.tensor([x])),
+                torch.dot(torch.tensor([y]), torch.tensor([y]))) ) );}  //0.5*k*(x*x + y*y)
 
-def ic_fn(t,t_min,t_max):
-    a = 1.0/( jnp.exp(-exp_coeff*t_min) - jnp.exp(-exp_coeff*t_max))
-    c = jnp.exp(-exp_coeff*t_max) / ( jnp.exp(-exp_coeff*t_max) - jnp.exp(-exp_coeff*t_min))
-    f = a*jnp.exp(-exp_coeff*t)+c
-    compare = jnp.array([f,0.0])
-    return jnp.max(compare)
+
+/**
+ * @brief max(f,0) where f(t_min) = 1, f(t_max) = 0, 
+ * need max(f,0) to be smooth enough - determined by value of exp_coeff
+ */
+
+torch::Tensor ic_fn(double t, double t_min, double t_max, double exp_coeff){
+    torch::Tensor t_exp_coeff   = torch.double(exp_coeff);
+    torch::tensor t_t           = torch.double(t);
+    torch::tensor t_t_min       = torch.double(t_min);
+    torch::tensor t_t_max       = torch.double(t_max);
+    torch::tensor t_exp_coeff_min     = torch.mul(torch.dot(t_exp_coeff, t_t_min), -1.0);
+    torch::tensor t_exp_coeff_max     = torch.mul(torch.dot(t_exp_coeff, t_t_max), -1.0);
+    
+    torch::tensor a = torch.linalg.inv( torch.exp(t_exp_coeff_min - t_exp_coeff_max) ); // this is 1.0/( jnp.exp(-exp_coeff*t_min) - jnp.exp(-exp_coeff*t_max))
+    torch::tensor c = torch.exp(t_exp_coeff_max) / ( torch.exp(t_exp_coeff_max) - torch.exp(t_exp_coeff_min))
+
+    torch::tensor t_exp_coeff_t      = torch.mul(torch.dot(t_exp_coeff, t_t), -1.0);
+    torch::tensor f = torch.add(torch.dot(a,torch.exp(t_exp_coeff_t)), c);
+    return torch.maximum(f, torch.double(0.0));
+}
+
 
 def f(params,x,y,t,k,t_min):
     f = nn(params,x,y,t,k)*(1.0-ic_fn(t,t_min,t_max)) + ic_fn(t,t_min,t_max)*((2.0 / jnp.pi)**0.5 * jnp.exp(-1.0*(x**2 + y**2) ))

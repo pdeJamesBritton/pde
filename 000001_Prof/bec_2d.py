@@ -94,7 +94,10 @@ def init_params(nn_arch,key):
     num_params = (dim + 1)*nn_arch[0]
     for i in range(1,len(nn_arch)):
         num_params += nn_arch[i]*(nn_arch[i-1] + 1)
-      # what does the below do?  
+     #num_params is not returned, what is its' purpose? 
+      
+      # what does below do?  the brackets are unbalanced.
+      
     params = key, shape=(num_params,))
     return params
 
