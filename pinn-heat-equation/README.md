@@ -1,3 +1,8 @@
+Moved cpp file to /home/james/OneDrive/James/CompSci/004_Summer_2024/ML_PINNs/pde/torchtest/01_test
+
+
+
+
 # Solving 2D Heat Equation with PINN
 This project is to solve a 2D heat equation with [PINN](https://en.wikipedia.org/wiki/Physics-informed_neural_networks).
  The math description and Python implementation is given by the [Jupyter script](https://github.com/nathanwbrei/phasm/blob/main/python/PhasmExampleHeatEquation.ipynb).

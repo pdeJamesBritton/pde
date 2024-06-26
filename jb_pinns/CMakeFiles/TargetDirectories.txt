@@ -1,0 +1,3 @@
+/home/james/OneDrive/James/CompSci/004_Summer_2024/ML_PINNs/pde/torchtest/01_test/CMakeFiles/01_test.dir
+/home/james/OneDrive/James/CompSci/004_Summer_2024/ML_PINNs/pde/torchtest/01_test/CMakeFiles/edit_cache.dir
+/home/james/OneDrive/James/CompSci/004_Summer_2024/ML_PINNs/pde/torchtest/01_test/CMakeFiles/rebuild_cache.dir
