@@ -367,6 +367,43 @@ int main() {
                                     max_eval,
                                     history_size);
 
+    // Evaluation
+    double h = 1.0/N;
+    torch::Tensor xx;
+    torch::Tensor yy;
+    torch::Tensor XX;
+    xx = torch::range(0, 1 + h, h);
+    yy = torch::arange(0, 1 + h, h);
+    auto grid = torch::meshgrid({xx,yy});
+
+    XX = torch::stack(grid).reshape({2, -1});
+    XX = XX.to(device);
+
+    std::cout << "Evaluation and extract..." << std::endl;
+
+    net.eval();
+
+    torch::Tensor y_pred;
+    try {
+        torch.no_grad();
+        y_pred = net(XX).reshape(xx.sizes(), yy.sizes());
+    }
+    catch (...){
+        std::cout<< "failed"<<std::endl;
+    }
+    
+    /*
+    double h = 1.0 / N;
+    torch::Tensor x = torch::arange(0, 1.0 + h, h);
+    torch::Tensor y = torch::arange(0, 1.0 + h, h);
+
+    //   std::cout<< x << std::endl;
+
+    auto grid= torch::meshgrid({x, y});
+    X = torch::stack(grid).reshape({2, -1});
+    X = X.to(device);
+
+    */
     return 0;
 }
 
