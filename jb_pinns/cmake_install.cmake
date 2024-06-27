@@ -1,4 +1,4 @@
-# Install script for directory: /home/james/OneDrive/James/CompSci/004_Summer_2024/ML_PINNs/pde/torchtest/01_test
+# Install script for directory: /home/james/OneDrive/James/CompSci/004_Summer_2024/ML_PINNs/pde/jb_pinns
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/james/OneDrive/James/CompSci/004_Summer_2024/ML_PINNs/pde/torchtest/01_test/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/james/OneDrive/James/CompSci/004_Summer_2024/ML_PINNs/pde/jb_pinns/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
