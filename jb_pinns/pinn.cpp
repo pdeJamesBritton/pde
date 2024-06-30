@@ -95,6 +95,8 @@ torch::Tensor get_pde_loss(torch::Tensor& u, torch::Tensor& X, torch::Device& de
     // get constant term f_X
     float f_data[WHOLE_GRID_SIZE];
     get_fterm_dataset_f(f_data);
+    // below has the form of:
+    // Equation: - 2 * pi * pi * sin(pi * x) * sin(pi * y) 
     torch::Tensor f_X = -2.0 * PI * PI * torch::from_blob(f_data, {WHOLE_GRID_SIZE}).to(device);
 
     return torch::mse_loss(du_dxx + du_dyy, f_X);
@@ -118,21 +120,7 @@ torch::Tensor get_total_loss(
     //std::cout<< "about to mse_loss"<<std::endl;
     return torch::mse_loss(net.forward(net.get_vNetwork(),X_train), Y_train) + get_pde_loss(u, X, device);
 }
-/*
-void closure(   torch::Tensor &loss_sum, 
-                torch::optim::LBFGS LBFGS_optim,
-                HeatPINNetImpl& net,
-                torch::Tensor& X,
-                torch::Tensor& X_train,
-                torch::Tensor& Y_train,
-                torch::Device& device)
-{
-    LBFGS_optim.zero_grad();
-    loss_sum = get_total_loss(net, X, X_train, Y_train, device);
-    loss_sum.backward();
-    return;
-}
-*/
+
 
 std::vector<torch::nn::Linear> vLayers( int input_layer_size,
                                         int output_layer_size,
@@ -147,13 +135,40 @@ std::vector<torch::nn::Linear> vLayers( int input_layer_size,
     vLayers.emplace_back(torch::nn::Linear(hidden_layer_size, output_layer_size));
     return vLayers;
 }
+NN::NN(const std::vector<torch::nn::Linear> &initVector): vNetwork{initVector}{
+      // error checking to be added.
+            std::cout<<"Registering Module"<<std::endl;
+            register_module("input", vNetwork[0]);
+            std::string hidden;
+            int i=1;
+            for(; i<(int)vNetwork.size()-1; i++){
+                hidden = "hidden_";
+                register_module(hidden.append(std::to_string(i)), vNetwork[i]);
+            }
+            register_module("output", vNetwork[i]);
 
-HeatPINNetImpl::HeatPINNetImpl(std::vector<torch::nn::Linear> initList):
+}
+std::vector<torch::nn::Linear> NN::get_Network(){ return vNetwork;}
+
+torch::Tensor NN::forward(std::vector<torch::nn::Linear> Network, torch::Tensor x){
+            //activation function for the input and hidden layers
+            //std::cout<<" forward"<<std::endl;
+            int i = 0;
+            for(; i< Network.size()-1; i++)
+            {
+              //  std::cout<<" forward in loop at:"<< std::to_string(i)<<std::endl;
+                x=torch::tanh(Network[i](x));
+            }
+            x = Network[i](x);
+            //std::cout<<"End of forward"<<std::endl;
+            return x;
+}
+HeatPINNetImpl::HeatPINNetImpl(const std::vector<torch::nn::Linear> initList): NN{initList}
             //int input_layer_size, int output_layer_size, int hidden_layer_size)
             
-            vNetwork(initList)
             
-        {            
+            
+{            
     /**
      * This I have addapted
      * 
@@ -175,41 +190,17 @@ HeatPINNetImpl::HeatPINNetImpl(std::vector<torch::nn::Linear> initList):
           )
         )
      */
-    // register module
-      {      
-            std::cout<<"Registering Module"<<std::endl;
-            register_module("input", vNetwork[0]);
-            std::string hidden;
-            int i=1;
-            for(; i<(int)vNetwork.size()-1; i++){
-                hidden = "hidden_";
-                register_module(hidden.append(std::to_string(i)), vNetwork[i]);
-            }
-            register_module("output", vNetwork[i]);
-      }
-    //public:
-    
+    public:
+        //this->vhNetwork=inithList;
+        this->model =  NN(get_Network());
         
-        
-        
-    //private:
-        std::vector< torch::nn::Linear > vNetwork;
+    private:
+        //std::vector< torch::nn::Linear > vhNetwork;
+        NN model;
         
 };
 
-torch::Tensor HeatPINNetImpl::forward(std::vector<torch::nn::Linear> Network, torch::Tensor x){
-            //activation function for the input and hidden layers
-            //std::cout<<" forward"<<std::endl;
-            int i = 0;
-            for(; i< Network.size()-1; i++)
-            {
-              //  std::cout<<" forward in loop at:"<< std::to_string(i)<<std::endl;
-                x=torch::tanh(Network[i](x));
-            }
-            x = Network[i](x);
-            //std::cout<<"End of forward"<<std::endl;
-            return x;
-}
+
 int HeatPINNetImpl::train(torch::Tensor &loss_sum, 
                 HeatPINNetImpl& net,
                 torch::Tensor& X,
@@ -354,6 +345,8 @@ int main() {
     int max_eval = 50000;
     int history_size = 50;
 
+    std::cout<<"Model: "<<std::endl;
+    std::cout<<net.model<<std::endl;
     std::cout<<"training"<<std::endl;
 
     int final_inter = net.train(    loss_sum, 

@@ -27,13 +27,26 @@ const int NN_OUTPUT_SIZE = 1;
 const int NN_HIDDEN_SIZE = 20;
 const int NN_DEPTH_SIZE = 3;
 
-class HeatPINNetImpl: public torch::nn::Module {
+
+class NN: public torch::nn::Module{
+        public:
+                NN(const std::vector<torch::nn::Linear> &initVector);
+
+                torch::Tensor forward(std::vector<torch::nn::Linear> Network,torch::Tensor x);
+
+                std::vector<torch::nn::Linear> get_Network();
+
+        private:
+                std::vector<torch::nn::Linear> vNetwork;
+};
+class HeatPINNetImpl: public NN {
   
     public:
     //constructor
-        HeatPINNetImpl(std::vector<torch::nn::Linear> init);
+        HeatPINNetImpl(const std::vector<torch::nn::Linear> &init): NN(init);
+        //using NN::NN;
         
-        torch::Tensor forward(std::vector<torch::nn::Linear> Network,torch::Tensor x);
+        
 
         int train(torch::Tensor &loss_sum, 
                 HeatPINNetImpl& net,
@@ -47,7 +60,8 @@ class HeatPINNetImpl: public torch::nn::Module {
                 int history_size);
         std::vector< torch::nn::Linear > get_vNetwork();
     private:
-        std::vector< torch::nn::Linear > vNetwork;
+        //std::vector< torch::nn::Linear > vNetwork;
+        NN model;
 };
 
 void get_whole_dataset_X(float* data);
