@@ -163,7 +163,7 @@ torch::Tensor NN::forward(std::vector<torch::nn::Linear> Network, torch::Tensor 
             //std::cout<<"End of forward"<<std::endl;
             return x;
 }
-HeatPINNetImpl::HeatPINNetImpl(const std::vector<torch::nn::Linear> initList): NN{initList}
+HeatPINNetImpl::HeatPINNetImpl(const std::vector<torch::nn::Linear> initList): NN(initList)
             //int input_layer_size, int output_layer_size, int hidden_layer_size)
             
             
@@ -190,13 +190,13 @@ HeatPINNetImpl::HeatPINNetImpl(const std::vector<torch::nn::Linear> initList): N
           )
         )
      */
-    public:
+    //public:
         //this->vhNetwork=inithList;
-        this->model =  NN(get_Network());
+        //this->model =  NN(get_Network());
         
-    private:
+    //private:
         //std::vector< torch::nn::Linear > vhNetwork;
-        NN model;
+       // NN model;
         
 };
 

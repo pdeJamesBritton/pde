@@ -39,11 +39,11 @@ class NN: public torch::nn::Module{
         private:
                 std::vector<torch::nn::Linear> vNetwork;
 };
-class HeatPINNetImpl: public NN {
+class HeatPINNetImpl {
   
     public:
     //constructor
-        HeatPINNetImpl(const std::vector<torch::nn::Linear> &init): NN(init);
+        HeatPINNetImpl(const std::vector<torch::nn::Linear> &init);
         //using NN::NN;
         
         

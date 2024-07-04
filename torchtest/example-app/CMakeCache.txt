@@ -34,7 +34,7 @@ CMAKE_COLOR_MAKEFILE:BOOL=ON
 CMAKE_CUDA_ARCHITECTURES:STRING=52
 
 //CUDA compiler
-CMAKE_CUDA_COMPILER:FILEPATH=/usr/local/cuda/bin/nvcc
+CMAKE_CUDA_COMPILER:STRING=/usr/local/cuda/bin/nvcc
 
 //Flags used by the CUDA compiler during all build types.
 CMAKE_CUDA_FLAGS:STRING=
@@ -374,7 +374,7 @@ CUDA_cufftw_static_LIBRARY:FILEPATH=/usr/local/cuda/lib64/libcufftw_static.a
 CUDA_culibos_LIBRARY:FILEPATH=/usr/local/cuda/lib64/libculibos.a
 
 //"cupti" library
-CUDA_cupti_LIBRARY:FILEPATH=/usr/local/cuda/lib64/libcupti.so
+CUDA_cupti_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libcupti.so
 
 //Path to a library.
 CUDA_cupti_static_LIBRARY:FILEPATH=/usr/local/cuda/lib64/libcupti_static.a
@@ -873,7 +873,7 @@ CUDA_run_nvcc:INTERNAL=/usr/local/lib/python3.10/dist-packages/torch/share/cmake
 //Details about finding CUDA
 FIND_PACKAGE_MESSAGE_DETAILS_CUDA:INTERNAL=[/usr/local/cuda][/usr/local/cuda/bin/nvcc][/usr/local/cuda/include][/usr/local/cuda/lib64/libcudart.so][v12.5()]
 //Details about finding CUDAToolkit
-FIND_PACKAGE_MESSAGE_DETAILS_CUDAToolkit:INTERNAL=[/usr/local/cuda/include][12.5.40][/usr/local/cuda/lib64/libcudart.so][/usr/local/cuda/bin][v12.5.40()]
+FIND_PACKAGE_MESSAGE_DETAILS_CUDAToolkit:INTERNAL=[/usr/local/cuda/include][12.5.82][/usr/local/cuda/lib64/libcudart.so][/usr/local/cuda/bin][v12.5.82()]
 //Details about finding Threads
 FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
 //Details about finding Torch
