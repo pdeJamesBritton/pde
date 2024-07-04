@@ -36,7 +36,7 @@ class NN: public torch::nn::Module{
 
                 std::vector<torch::nn::Linear> get_Network();
 
-        private:
+        //private:
                 std::vector<torch::nn::Linear> vNetwork;
 };
 class HeatPINNetImpl {
@@ -46,7 +46,10 @@ class HeatPINNetImpl {
         HeatPINNetImpl(const std::vector<torch::nn::Linear> &init);
         //using NN::NN;
         
-        
+        torch::Tensor forward
+                (
+                 std::vector<torch::nn::Linear> Network,
+                 torch::Tensor x);
 
         int train(torch::Tensor &loss_sum, 
                 HeatPINNetImpl& net,
@@ -58,8 +61,9 @@ class HeatPINNetImpl {
                 int max_iter,
                 int max_eval,
                 int history_size);
-        std::vector< torch::nn::Linear > get_vNetwork();
-    private:
+        //std::vector< torch::nn::Linear > get_vNetwork();
+        //NN* get_model();
+    public: //want to make private and adjust code
         //std::vector< torch::nn::Linear > vNetwork;
         NN model;
 };

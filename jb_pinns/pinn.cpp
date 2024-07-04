@@ -116,9 +116,9 @@ torch::Tensor get_total_loss(
      */
     //std::cout<<"IN get_total_loss"<<std::endl;
     
-    torch::Tensor u = net.forward(net.get_vNetwork(), X);
+    torch::Tensor u = net.forward(net.model.vNetwork, X);
     //std::cout<< "about to mse_loss"<<std::endl;
-    return torch::mse_loss(net.forward(net.get_vNetwork(),X_train), Y_train) + get_pde_loss(u, X, device);
+    return torch::mse_loss(net.forward(net.model.vNetwork,X_train), Y_train) + get_pde_loss(u, X, device);
 }
 
 
@@ -148,6 +148,7 @@ NN::NN(const std::vector<torch::nn::Linear> &initVector): vNetwork{initVector}{
             register_module("output", vNetwork[i]);
 
 }
+
 std::vector<torch::nn::Linear> NN::get_Network(){ return vNetwork;}
 
 torch::Tensor NN::forward(std::vector<torch::nn::Linear> Network, torch::Tensor x){
@@ -163,7 +164,8 @@ torch::Tensor NN::forward(std::vector<torch::nn::Linear> Network, torch::Tensor 
             //std::cout<<"End of forward"<<std::endl;
             return x;
 }
-HeatPINNetImpl::HeatPINNetImpl(const std::vector<torch::nn::Linear> initList): NN(initList)
+
+HeatPINNetImpl::HeatPINNetImpl(const std::vector<torch::nn::Linear> &initList): model(initList)
             //int input_layer_size, int output_layer_size, int hidden_layer_size)
             
             
@@ -190,6 +192,7 @@ HeatPINNetImpl::HeatPINNetImpl(const std::vector<torch::nn::Linear> initList): N
           )
         )
      */
+    //this->model(initList);
     //public:
         //this->vhNetwork=inithList;
         //this->model =  NN(get_Network());
@@ -197,8 +200,26 @@ HeatPINNetImpl::HeatPINNetImpl(const std::vector<torch::nn::Linear> initList): N
     //private:
         //std::vector< torch::nn::Linear > vhNetwork;
        // NN model;
+       
         
-};
+}
+
+//NN *HeatPINNetImpl::get_model(){ return this->model;}
+
+torch::Tensor HeatPINNetImpl::forward(std::vector<torch::nn::Linear> Network, torch::Tensor x){
+            //activation function for the input and hidden layers
+            //std::cout<<" forward"<<std::endl;
+            int i = 0;
+            for(; i< Network.size()-1; i++)
+            {
+              //  std::cout<<" forward in loop at:"<< std::to_string(i)<<std::endl;
+                x=torch::tanh(Network[i](x));
+            }
+            x = Network[i](x);
+            //std::cout<<"End of forward"<<std::endl;
+            return x;
+}
+
 
 
 int HeatPINNetImpl::train(torch::Tensor &loss_sum, 
@@ -214,11 +235,11 @@ int HeatPINNetImpl::train(torch::Tensor &loss_sum,
         {
             int iter = 0;
 			// optimizer declaration. All parameters are trying to match Python
-			torch::optim::Adam adam_optim(net.parameters(), torch::optim::AdamOptions(1e-3));  // default Adam lr
+			torch::optim::Adam adam_optim(net.model.parameters(), torch::optim::AdamOptions(1e-3));  // default Adam lr
 			// Python default value ref: https://pytorch.org/docs/stable/generated/torch.optim.LBFGS.html
 			torch::optim::LBFGSOptions LBFGS_optim_options =
             torch::optim::LBFGSOptions(options).max_iter(max_iter).max_eval(max_eval).history_size(history_size);
-			torch::optim::LBFGS LBFGS_optim(net.parameters(), LBFGS_optim_options);
+			torch::optim::LBFGS LBFGS_optim(net.model.parameters(), LBFGS_optim_options);
             std::cout<<std::endl;
             std::cout<<"Entering training loop"<<std::endl;
             while(iter <MAX_STEPS)
@@ -263,9 +284,11 @@ int HeatPINNetImpl::train(torch::Tensor &loss_sum,
             return iter;
     
         }
-std::vector< torch::nn::Linear > HeatPINNetImpl::get_vNetwork(){ return vNetwork;}
+
 //TORCH_MODULE(HeatPINNetImpl); //? a wrapped shared_ptr, see official tutorial
 //WHAT TO DO WITH ABOVE?
+
+//NN HeatPINNetImpl::get_model( return model);
 
 std::vector<torch::nn::Linear> vMake_Layers(
         int input_layer_size,
@@ -296,7 +319,7 @@ int main() {
 
     std::vector<torch::nn::Linear> layers= vMake_Layers(NN_INPUT_SIZE, NN_OUTPUT_SIZE, NN_HIDDEN_SIZE, NN_DEPTH_SIZE);
     auto net = HeatPINNetImpl( layers );  // init a network model
-    net.to(device);
+    net.model.to(device);
 
     /**
      * Init data sets.
@@ -332,11 +355,11 @@ int main() {
      *  First 1000 steps use Adam, and remaining steps use LBFGS.
      */
     // optimizer declaration. All parameters are trying to match Python
-    torch::optim::Adam adam_optim(net.parameters(), torch::optim::AdamOptions(1e-3));  // default Adam lr
+    torch::optim::Adam adam_optim(net.model.parameters(), torch::optim::AdamOptions(1e-3));  // default Adam lr
     // Python default value ref: https://pytorch.org/docs/stable/generated/torch.optim.LBFGS.html
     torch::optim::LBFGSOptions LBFGS_optim_options =
             torch::optim::LBFGSOptions(1).max_iter(50000).max_eval(50000).history_size(50);
-    torch::optim::LBFGS LBFGS_optim(net.parameters(), LBFGS_optim_options);
+    torch::optim::LBFGS LBFGS_optim(net.model.parameters(), LBFGS_optim_options);
 
     torch::Tensor loss_sum;
 
@@ -373,13 +396,16 @@ int main() {
     XX = XX.to(device);
 
     std::cout << "Evaluation and extract..." << std::endl;
-
-    net.eval();
+    
+    NN modeleval = net.model;
+    modeleval.eval();
+    //net.model.eval();
 
     torch::Tensor y_pred;
     try {
-        torch.no_grad();
-        y_pred = net(XX).reshape(xx.sizes(), yy.sizes());
+        torch::NoGradGuard no_grad;
+        //torch.no_grad();
+     //   y_pred = net(XX).reshape(xx.sizes(), yy.sizes());
     }
     catch (...){
         std::cout<< "failed"<<std::endl;

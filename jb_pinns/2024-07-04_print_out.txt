@@ -1,0 +1,47 @@
+2024-07-04 Print out from network
+this is the training output
+I still need to pass it a tensor to 'predict' 
+
+####### A cpp torch example with PINN heat equation. #######
+
+CUDA available. Training on GPU.
+
+Registering Module
+Y_train sizes: [260, 1]
+Y_train.device().type(): cuda
+Y_train.requires_grad(): 0
+X_train sizes: [260, 2]
+X_train.device().type(): cuda
+X_train.requires_grad(): 0
+X sizes: [4225, 2]
+X.device().index(): 
+X.requires_grad(): 1
+Model: 
+NN(
+  (input): torch::nn::Linear(in_features=2, out_features=20, bias=true)
+  (hidden_1): torch::nn::Linear(in_features=20, out_features=20, bias=true)
+  (hidden_2): torch::nn::Linear(in_features=20, out_features=20, bias=true)
+  (hidden_3): torch::nn::Linear(in_features=20, out_features=20, bias=true)
+  (hidden_4): torch::nn::Linear(in_features=20, out_features=20, bias=true)
+  (output): torch::nn::Linear(in_features=20, out_features=1, bias=true)
+)
+training
+
+Entering training loop
+[W CublasHandlePool.cpp:135] Warning: Attempting to run cuBLAS, but there was no current CUDA context! Attempting to set the primary context... (function operator())
+  iter=0, loss=94.40891, loss.device().type()=cuda
+  iter=100, loss=16.39526, loss.device().type()=cuda
+  iter=200, loss=7.473991, loss.device().type()=cuda
+  iter=300, loss=2.263223, loss.device().type()=cuda
+  iter=400, loss=0.3408237, loss.device().type()=cuda
+  iter=500, loss=0.1567361, loss.device().type()=cuda
+  iter=600, loss=0.1280847, loss.device().type()=cuda
+  iter=700, loss=0.1101034, loss.device().type()=cuda
+  iter=800, loss=0.09630099, loss.device().type()=cuda
+  iter=900, loss=0.08522931, loss.device().type()=cuda
+  iter=1000, loss=5.07626e-05, loss.device().type()=cuda
+
+Training stopped.
+Final iter=1001, loss=1.817886e-05, loss.device().type()=cuda
+[W TensorShape.cpp:3587] Warning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (function operator())
+Evaluation and extract...
