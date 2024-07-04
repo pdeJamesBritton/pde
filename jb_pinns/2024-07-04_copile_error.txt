@@ -1,0 +1,53 @@
+2024-07-04 compile error
+ * @ref addapted code from:
+ * https://github.com/nathanwbrei/phasm/tree/main/examples/pinn_pde_solver
+ * and
+ * https://github.com/nathanwbrei/phasm/blob/main/python/PhasmExampleHeatEquation.ipynb
+ * 
+ * 
+ */
+ issue is ine pinn.cpp at line 408, this is where I want to do this:
+		 # Evaluation
+		h = 1 / N
+		x = torch.arange(0, 1 + h, h)
+		y = torch.arange(0, 1 + h, h)
+
+		# exact solution
+		X = torch.stack(torch.meshgrid(x, y)).reshape(2, -1).T
+		X = X.to(net.X.device)
+
+		model = net.model
+		model.eval()
+		with torch.no_grad():
+			y_pred = model(X).reshape(len(x), len(y))
+			
+		print(y_pred.max())
+
+from the .ipynb source, with tmy attempt:
+    torch::Tensor y_pred;
+    try {
+        torch::NoGradGuard no_grad;
+        //torch.no_grad();
+        y_pred = net(XX).reshape(xx.sizes(), yy.sizes());
+    }
+    catch (...){
+        std::cout<< "failed"<<std::endl;
+    }
+	
+here is the output from the compiler:
+
+		james@J ~/.../jb_pinns (pdetest)
+		$make
+		Consolidate compiler generated dependencies of target pinn
+		[ 50%] Building CXX object CMakeFiles/pinn.dir/pinn.cpp.o
+		/home/james/OneDrive/James/CompSci/004_Summer_2024/ML_PINNs/pde/jb_pinns/pinn.cpp: In function ‘int main()’:
+		/home/james/OneDrive/James/CompSci/004_Summer_2024/ML_PINNs/pde/jb_pinns/pinn.cpp:408:21: error: no match for call to ‘(HeatPINNetImpl) (at::Tensor&)’
+		  408 |         y_pred = net(XX).reshape(xx.sizes(), yy.sizes());
+			  |                  ~~~^~~~
+		make[2]: *** [CMakeFiles/pinn.dir/build.make:76: CMakeFiles/pinn.dir/pinn.cpp.o] Error 1
+		make[1]: *** [CMakeFiles/Makefile2:83: CMakeFiles/pinn.dir/all] Error 2
+		make: *** [Makefile:91: all] Error 2
+
+
+I suspect that the issue as to do with inherantence, in the ,ipynb we have this line:
+	super(NN, self).__init__()
