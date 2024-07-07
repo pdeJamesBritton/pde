@@ -1,0 +1,32 @@
+####### A cpp torch example with PINN heat equation. #######
+
+CUDA available. Training on GPU.
+
+Registering Module
+Y_train sizes: [260, 1]
+Y_train.device().type(): cuda
+Y_train.requires_grad(): 0
+X_train sizes: [260, 2]
+X_train.device().type(): cuda
+X_train.requires_grad(): 0
+X sizes: [4225, 2]
+X.device().index(): 
+X.requires_grad(): 1
+training
+
+Entering training loop
+[W CublasHandlePool.cpp:135] Warning: Attempting to run cuBLAS, but there was no current CUDA context! Attempting to set the primary context... (function operator())
+  iter=0, loss=94.25238, loss.device().type()=cuda
+  iter=100, loss=10.1826, loss.device().type()=cuda
+  iter=200, loss=7.960057, loss.device().type()=cuda
+  iter=300, loss=3.554476, loss.device().type()=cuda
+  iter=400, loss=0.2492722, loss.device().type()=cuda
+  iter=500, loss=0.1234154, loss.device().type()=cuda
+  iter=600, loss=0.1044851, loss.device().type()=cuda
+  iter=700, loss=0.09358739, loss.device().type()=cuda
+  iter=800, loss=0.08570655, loss.device().type()=cuda
+  iter=900, loss=0.07941256, loss.device().type()=cuda
+  iter=1000, loss=0.000109538, loss.device().type()=cuda
+
+Training stopped.
+Final iter=1003, loss=2.971987e-05, loss.device().type()=cuda

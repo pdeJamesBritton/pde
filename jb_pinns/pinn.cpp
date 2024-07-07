@@ -405,7 +405,7 @@ int main() {
     try {
         torch::NoGradGuard no_grad;
         //torch.no_grad();
-        y_pred = net(XX).reshape(xx.sizes(), yy.sizes());
+        y_pred = modeleval.fun(XX).reshape(xx.sizes(), yy.sizes());
     }
     catch (...){
         std::cout<< "failed"<<std::endl;
