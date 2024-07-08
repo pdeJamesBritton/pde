@@ -1,4 +1,10 @@
+update 2024-07-08
+inside build folder call:
+	cmake -DCMAKE_PREFIX_PATH=`python3 -c 'import torch;print(torch.utils.cmake_prefix_path)'` ..
+	cmake --build . --config Release
 2024-06-20
+
+
 
 copied and tested code from:
 https://github.com/nathanwbrei/phasm/tree/main/examples/pinn_pde_solver
