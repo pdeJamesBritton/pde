@@ -14,7 +14,7 @@
 #include <torch/torch.h>
 #include <math.h>
 #include <iostream>
-#include "/home/james/OneDrive/James/CompSci/004_Summer_2024/ML_PINNs/pde/jb_pinns/networkConstants.h"
+#include "/home/j/OneDrive/James/CompSci/004_Summer_2024/ML_PINNs/pde/jb_pinns/networkConstants.h"
 #include <initializer_list>
 
 using namespace torch::indexing;   // for tensor indexing
@@ -402,14 +402,14 @@ int main() {
     //net.model.eval();
 
     torch::Tensor y_pred;
-    try {
-        torch::NoGradGuard no_grad;
-        //torch.no_grad();
-        y_pred = modeleval.fun(XX).reshape(xx.sizes(), yy.sizes());
-    }
-    catch (...){
-        std::cout<< "failed"<<std::endl;
-    }
+    //try {
+    //    torch::NoGradGuard no_grad;
+    //    //torch.no_grad();
+    //    y_pred = modeleval.fun(XX).reshape(xx.sizes(), yy.sizes());
+   // }
+   // catch (...){
+   //     std::cout<< "failed"<<std::endl;
+   // }
     
     /*
     double h = 1.0 / N;
