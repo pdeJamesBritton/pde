@@ -24,8 +24,8 @@ const float TARGET_LOSS = 5.0e-5;
 
 const int NN_INPUT_SIZE = 2;
 const int NN_OUTPUT_SIZE = 1;
-const int NN_HIDDEN_SIZE = 20;
-const int NN_DEPTH_SIZE = 3;
+const int NN_HIDDEN_SIZE = 2;
+const int NN_DEPTH_SIZE = 1;
 
 
 class NN: public torch::nn::Module{

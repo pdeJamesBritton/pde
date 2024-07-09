@@ -138,13 +138,16 @@ std::vector<torch::nn::Linear> vLayers( int input_layer_size,
 NN::NN(const std::vector<torch::nn::Linear> &initVector): vNetwork{initVector}{
       // error checking to be added.
             std::cout<<"Registering Module"<<std::endl;
+            //register_parameter("input", vNetwork[0]);
             register_module("input", vNetwork[0]);
             std::string hidden;
             int i=1;
             for(; i<(int)vNetwork.size()-1; i++){
                 hidden = "hidden_";
+                //register_parameter(hidden.append(std::to_string(i)), vNetwork[i]);
                 register_module(hidden.append(std::to_string(i)), vNetwork[i]);
             }
+            //register_parameter("output", vNetwork[i]);
             register_module("output", vNetwork[i]);
 
 }
@@ -298,7 +301,7 @@ std::vector<torch::nn::Linear> vMake_Layers(
 ){
         std::vector<torch::nn::Linear> vMake_Layers;
         vMake_Layers.push_back(torch::nn::Linear(input_layer_size, hidden_layer_size));
-        for(int i=0; i<=depth; i++)
+        for(int i=0; i<depth; i++)
            vMake_Layers.push_back(torch::nn::Linear(hidden_layer_size, hidden_layer_size));
         vMake_Layers.push_back(torch::nn::Linear(hidden_layer_size, output_layer_size));
         
@@ -382,6 +385,15 @@ int main() {
                                     max_iter,
                                     max_eval,
                                     history_size);
+
+    std::cout<< "Parameters: "<<std::endl;
+    int paramcount = 0;
+    for ( const auto &p :net.model.parameters())//named_parameters())
+    {
+        std::cout<< "Params #" <<paramcount++<< std::endl;
+        std::cout<< p <<std::endl;
+        //std::cout<< std::get<1>(p) <<std::endl;
+    }
 
     // Evaluation
     double h = 1.0/N;
