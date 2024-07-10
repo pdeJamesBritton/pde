@@ -33,7 +33,12 @@ class NN: public torch::nn::Module{
                 NN(const std::vector<torch::nn::Linear> &initVector);
 
                 torch::Tensor forward(std::vector<torch::nn::Linear> Network,torch::Tensor x);
-
+                /*torch::Tensor forward_prediction
+                (
+                HeatPINNetImpl Network, 
+                torch::Tensor x
+                );
+                */
                 std::vector<torch::nn::Linear> get_Network();
 
         //private:
@@ -50,7 +55,12 @@ class HeatPINNetImpl {
                 (
                  std::vector<torch::nn::Linear> Network,
                  torch::Tensor x);
-
+        
+        torch::Tensor forward_prediction
+                (
+                //HeatPINNetImpl Network, 
+                torch::Tensor x
+                );
         int train(torch::Tensor &loss_sum, 
                 HeatPINNetImpl& net,
                 torch::Tensor& X,

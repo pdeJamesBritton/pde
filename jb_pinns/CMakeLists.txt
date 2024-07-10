@@ -1,10 +1,20 @@
 ## jb_pinns version
+# do in build directory
 # cmake -DCMAKE_PREFIX_PATH=`python3 -c 'import torch;print(torch.utils.cmake_prefix_path)'` ..
+# do in jb_pinns directory
 # cmake --build . --config Release
 
-
+# for debugging
+# make debug_build
+# cd to debug_build
+# call:
+# cmake -DCMAKE_PREFIX_PATH=`python3 -c 'import torch;print(torch.utils.cmake_prefix_path)'` -DCMAKE_BUILD_TYPE=Debug ..
+#changed pinn to pinndebug
+# move up a directory
+# called:
+# make 
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
-project(pinn)
+project(pinndebug)
 
 find_package(Torch REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
@@ -16,18 +26,18 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 #add_library(MyExternalLib SHARED IMPORTED)
 
 
-add_executable(pinn pinn.cpp)
-target_link_libraries(pinn "${TORCH_LIBRARIES}" ) #MyExternalLib)
+add_executable(pinndebug pinn.cpp)
+target_link_libraries(pinndebug "${TORCH_LIBRARIES}" ) #MyExternalLib)
 
-target_include_directories(pinn PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
-set_property(TARGET pinn PROPERTY CXX_STANDARD 17)
+target_include_directories(pinndebug PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+set_property(TARGET pinndebug PROPERTY CXX_STANDARD 17)
 
 # The following code block is suggested to be used on Windows.
 # According to https://github.com/pytorch/pytorch/issues/25457,
 # the DLLs need to be copied to avoid memory errors.
 if (MSVC)
   file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")
-  add_custom_command(TARGET pinn
+  add_custom_command(TARGET pinndebug
                      POST_BUILD
                      COMMAND ${CMAKE_COMMAND} -E copy_if_different
                      ${TORCH_DLLS}

@@ -168,6 +168,37 @@ torch::Tensor NN::forward(std::vector<torch::nn::Linear> Network, torch::Tensor 
             return x;
 }
 
+torch::Tensor HeatPINNetImpl::forward_prediction(/*HeatPINNetImpl Network,*/ torch::Tensor x){
+            //activation function for the input and hidden layers
+            //std::cout<<" forward"<<std::endl;
+            //torch::Tensor y;
+            torch::Tensor y;
+            int paramcount = 0;
+            torch:: Tensor W, b;
+            auto size = this->model.parameters().size();
+            for ( const auto &p :this->model.parameters())//named_parameters())
+            {
+                if(paramcount != this->model.parameters().size()-1)
+                {
+                    y=x;
+                    if(paramcount%2 == 0){
+                        W=p.to(torch::kDouble);
+                        y=W*y;
+                        paramcount++;
+                    }
+                    if(paramcount %2 != 0 ){
+                        b=p.to(torch::kDouble);
+                        y=y + b;
+                        y=torch::tanh(y);
+                        paramcount++;
+                    }
+                }
+                b=p.to(torch::kDouble);
+                y+=b;               
+            }
+            return y;
+}
+
 HeatPINNetImpl::HeatPINNetImpl(const std::vector<torch::nn::Linear> &initList): model(initList)
             //int input_layer_size, int output_layer_size, int hidden_layer_size)
             
@@ -392,6 +423,11 @@ int main() {
     {
         std::cout<< "Params #" <<paramcount++<< std::endl;
         std::cout<< p <<std::endl;
+        std::cout << p.sizes() << std::endl;
+        std::cout << p.to(torch::kDouble) <<std::endl;
+        torch::Tensor t;
+        t = p.to(torch::kDouble);
+        std::cout << "tensor t: " << t << std::endl;
         //std::cout<< std::get<1>(p) <<std::endl;
     }
 
@@ -414,15 +450,21 @@ int main() {
     //net.model.eval();
 
     torch::Tensor y_pred;
-    //try {
-    //    torch::NoGradGuard no_grad;
+    torch::NoGradGuard no_grad;
     //    //torch.no_grad();
-    //    y_pred = modeleval.fun(XX).reshape(xx.sizes(), yy.sizes());
-   // }
-   // catch (...){
-   //     std::cout<< "failed"<<std::endl;
-   // }
+        y_pred = net.forward_prediction(/*modeleval,*/ XX);
+        std::cout<< "succeded" << std::endl;
+    try {
+        torch::NoGradGuard no_grad;
+    //    //torch.no_grad();
+        y_pred = net.forward_prediction(/*modeleval,*/ XX);
+        std::cout<< "succeded" << std::endl;
+    }
+    catch (...){
+        std::cout<< "failed"<<std::endl;
+    }
     
+    std::cout<< "Max: " << y_pred.sizes() << std::endl ;
     /*
     double h = 1.0 / N;
     torch::Tensor x = torch::arange(0, 1.0 + h, h);

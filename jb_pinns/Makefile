@@ -117,24 +117,24 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named pinn
+# Target rules for targets named pinndebug
 
 # Build rule for target.
-pinn: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 pinn
-.PHONY : pinn
+pinndebug: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 pinndebug
+.PHONY : pinndebug
 
 # fast build rule for target.
-pinn/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/pinn.dir/build.make CMakeFiles/pinn.dir/build
-.PHONY : pinn/fast
+pinndebug/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pinndebug.dir/build.make CMakeFiles/pinndebug.dir/build
+.PHONY : pinndebug/fast
 
 pinn.o: pinn.cpp.o
 .PHONY : pinn.o
 
 # target to build an object file
 pinn.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/pinn.dir/build.make CMakeFiles/pinn.dir/pinn.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pinndebug.dir/build.make CMakeFiles/pinndebug.dir/pinn.cpp.o
 .PHONY : pinn.cpp.o
 
 pinn.i: pinn.cpp.i
@@ -142,7 +142,7 @@ pinn.i: pinn.cpp.i
 
 # target to preprocess a source file
 pinn.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/pinn.dir/build.make CMakeFiles/pinn.dir/pinn.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pinndebug.dir/build.make CMakeFiles/pinndebug.dir/pinn.cpp.i
 .PHONY : pinn.cpp.i
 
 pinn.s: pinn.cpp.s
@@ -150,7 +150,7 @@ pinn.s: pinn.cpp.s
 
 # target to generate assembly for a file
 pinn.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/pinn.dir/build.make CMakeFiles/pinn.dir/pinn.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pinndebug.dir/build.make CMakeFiles/pinndebug.dir/pinn.cpp.s
 .PHONY : pinn.cpp.s
 
 # Help Target
@@ -161,7 +161,7 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... pinn"
+	@echo "... pinndebug"
 	@echo "... pinn.o"
 	@echo "... pinn.i"
 	@echo "... pinn.s"
