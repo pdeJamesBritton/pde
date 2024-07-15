@@ -12,6 +12,7 @@
  */
 
 #include <torch/torch.h>
+//#include "/home/j/.local/lib/python3.10/site-packages/torch/share/cmake/Torch/torch.h"
 #include <math.h>
 #include <iostream>
 #include "/home/j/OneDrive/James/CompSci/004_Summer_2024/ML_PINNs/pde/jb_pinns/networkConstants.h"
