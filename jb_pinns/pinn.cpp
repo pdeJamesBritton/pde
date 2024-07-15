@@ -169,76 +169,108 @@ torch::Tensor NN::forward(std::vector<torch::nn::Linear> Network, torch::Tensor 
             return x;
 }
 
-torch::Tensor HeatPINNetImpl::forward_prediction(
+void HeatPINNetImpl::forward_prediction(
         int input_layer_size,
         int output_layer_size,
         int hidden_layer_size,
-        int depth, 
-        torch::Tensor x)
+        int depth
+)
 {
     std::cout<<" in prediction"<<std::endl;
-        std::vector<torch::Tensor> W_Layers, B_Layers, steps;
-        W_Layers.push_back(torch::empty({input_layer_size, hidden_layer_size}));
-        B_Layers.push_back(torch::empty({hidden_layer_size}));
-        steps.push_back(x);
+        std::vector<arma::Mat<double>> W_Layers, B_Layers, steps;
+        W_Layers.emplace_back(arma::Mat<double>( hidden_layer_size, input_layer_size));
+        B_Layers.emplace_back(arma::Mat<double>(hidden_layer_size, 1));
+        //steps.push_back(*XX);
         std::cout<<"entering first loop"<<std::endl;
         for(int i=0; i<depth; i++){
-           W_Layers.push_back(torch::empty({hidden_layer_size, hidden_layer_size}));
-           B_Layers.push_back(torch::empty(hidden_layer_size));
+           W_Layers.emplace_back(arma::Mat<double>(hidden_layer_size, hidden_layer_size));
+           B_Layers.emplace_back(arma::Mat<double>(hidden_layer_size,1));
            
         }
-        W_Layers.push_back(torch::empty({hidden_layer_size, output_layer_size}));
-        W_Layers.push_back(torch::empty({output_layer_size}));
+        W_Layers.emplace_back(arma::Mat<double>( output_layer_size, hidden_layer_size));
+        B_Layers.emplace_back(arma::Mat<double>(output_layer_size,1));
         
-        torch::Tensor y;
+        //torch::Tensor y;
         int paramcount = 0;
         int w_count = 0;
         int b_count = 0;
-        torch:: Tensor W, b;
+        //torch:: Tensor W, b;
         auto size = this->model.parameters().size();
         std::cout<<"entering second loop"<<std::endl;
+        //arma::Mat<double> X(N,N, arma::fill::zeros);
         for ( const auto &p :this->model.parameters())//named_parameters())
         {
-            std::cout<< "Params #" <<paramcount++<< std::endl;
-            std::cout<< p <<std::endl;
-            std::cout << p.sizes() << std::endl;
-            //std::cout << p.to(torch::kDouble) <<std::endl;
-            //torch::Tensor t;
-            //t = p.to(torch::kDouble);
-            //std::cout << "tensor t: " << t << std::endl;
-            
-               // if(paramcount%2 == 0){
-                    std::cout<<"first "<<std::endl;
-                    std::cout<< p[0,0]<<std::endl;
-                    std::cout<< p[0,1]<<std::endl;
-                    std::cout<< p[1,0]<<std::endl;
-                    std::cout<< p[1,1]<<std::endl;
-                    W_Layers[w_count]=p.to(torch::kDouble);//.to(torch::kDouble);
-                    std::cout<<"after"<<std::endl;
-                    std::cout<< steps.size()<<std::endl;
-                    std::cout<< x.size(1) <<std::endl;
-                    steps.push_back(W_Layers[w_count] * steps[steps.size()-1]);
-                    paramcount++;
-                    w_count++;
-                    std::cout<< "first if " << steps[steps.size()-1] << std::endl;
-                //}
-                if(paramcount %2 != 0 ){
-                    B_Layers[b_count]=p.to(torch::kDouble);
-                    if(w_count + b_count < this->model.parameters().size() )
-                        steps.push_back( torch::tanh( steps[steps.size()-1] + B_Layers[b_count] ) );
-                    else
-                        steps.push_back( steps[steps.size()-1] + B_Layers[b_count] );
-                    paramcount++;
-                    b_count++;
-                    std::cout<< steps[steps.size()-1] << std::endl;
+            if(p.dim() == 2)
+            {
+                std::cout<< "dim: " << p.dim() << std::endl;
+                std::cout<< "size0: " <<p.size(0)<< std::endl;
+                std::cout<< "size1: " <<p.size(1)<< std::endl;
+                for(int i = 0; i< p.size(0); i++)
+                {
+                    for(int j = 0; j < p.size(1); j++)
+                    {
+                        std::cout<< "("<<i<<", "<<j<<")"<<std::endl;
+                        W_Layers[w_count](i,j) = p[i][j].item<double>();
+                    }
                 }
+                w_count++;
+            }else if(p.dim() ==1)
+            {
+                std::cout<< "dim: " << p.dim() << std::endl;
+                std::cout<< "size0: " <<p.size(0)<< std::endl;
+                for(int i =0; i < p.size(0); i++)
+                {
+                    B_Layers[b_count](i) = p[i].item<double>();
+                }
+                b_count++;
+
+            }
+
             
         }
-        y = steps[steps.size()-1];
-        return y;
+        for(auto &W : W_Layers)
+        {
+            W.print("W:");
+            //B_Layers.print("B:");
+        }
+        for(auto &B : B_Layers)
+        {
+            B.print("B:");
+            //B_Layers.print("B:");
+        }
+        // now for iterating through data-grid in column-major.
+        arma::Mat<double> xy_node(input_layer_size,1);
+    
+        for(int x=0; x<xx.size(); x++)
+        {
+            for(int y=0; y<yy.size(); y++)
+            {
+                std::vector<arma::Mat<double>> copy(W_Layers);
+                xy_node(0,0) = xx(x);
+                xy_node(1,0) = yy(y);
+                std::cout<<"line 250:"<<std::endl;       
+                // input layer
+                copy[0] = copy[0] * xy_node + B_Layers[0];
+                std::cout<<"line 253"<<std::endl;
+                std::cout<<"( "<<x<<","<<y<<")"<<std::endl;
+                for(int l=1; l<copy.size(); l++)
+                {
+                    for( auto &W : copy[l-1])
+                    {
+                        W = std::tanh(W);
+                    }
+                    std::cout<<"layer: "<<l<<std::endl;
+                    copy[l] = copy[l] * copy[l-1] + B_Layers[l];
+                }
+                copy[copy.size()-1].print("result: ");
+                XX(x,y) = copy[copy.size()-1](0,0);
+            }
+        }
+        //y = steps[steps.size()-1];
+        return  ;//X;
 }
 
-HeatPINNetImpl::HeatPINNetImpl(const std::vector<torch::nn::Linear> &initList): model(initList)
+HeatPINNetImpl::HeatPINNetImpl(const std::vector<torch::nn::Linear> &initList): model(initList), xx(arma::linspace(0, 1, 3)), yy(arma::linspace(0, 1, 3)), XX(3,3, arma::fill::zeros)
             //int input_layer_size, int output_layer_size, int hidden_layer_size)
             
             
@@ -456,36 +488,81 @@ int main() {
                                     max_eval,
                                     history_size);
 
-/*    std::cout<< "Parameters: "<<std::endl;
+    std::cout<< "Parameters: "<<std::endl;
     int paramcount = 0;
+    double dum = 0;
     for ( const auto &p :net.model.parameters())//named_parameters())
     {
         std::cout<< "Params #" <<paramcount++<< std::endl;
         std::cout<< p <<std::endl;
-        std::cout << p.sizes() << std::endl;
-        std::cout << p.to(torch::kDouble) <<std::endl;
-        torch::Tensor t;
-        t = p.to(torch::kDouble);
-        std::cout << "tensor t: " << t << std::endl;
+        //std::cout << p[0] << std::endl;
+        //std::cout << p.to(torch::kDouble).data[0,0] <<std::endl;
+        /*std::cout<< p[0][0] << std::endl;
+        std::cout<< p[0][1] << std::endl;
+        std::cout<< p[1][0] << std::endl;
+        std::cout<< p[1][1] << std::endl;
+
+        std::cout<< p[2][0] << std::endl;
+        std::cout<< p[2][1] << std::endl;
+        */
+        std::cout<< "p.size(0): " << p.size(0)<<std::endl;// = columns
+
+        for(int i = 0; i< p.size(0); i++)
+        {   
+            if(p.dim() >1){
+                for( int j = 0; j < p.size(1); j++)
+                {   
+                    //std::cout<< "p.size(0):" << p.size(0) << std::endl; //rows
+                    std::cout<< "( i="<< i <<", j="<< j <<" )"<< std::endl;                
+                    std::cout<< p[i][j].to(torch::kDouble) << std::endl;
+                    dum = (double)p[i][j].item<double>(); // this is what I need
+                    std::cout<<"\n\n\n"<<std::endl;
+                    std::cout<< "dum: " << dum << std::endl;
+                }
+            }
+            else{
+                std::cout<< "( i="<< i <<" )"<< std::endl;                
+                std::cout<< p[i] << std::endl;
+            }
+        }
+        
+        //std::cout << p[0][0] <<std::endl;
+        //torch::Tensor t;
+        //t = p.to(torch::kDouble);
+        //std::cout << "tensor t: " << t << std::endl;
         //std::cout<< std::get<1>(p) <<std::endl;
     }
-*/
+
     // Evaluation
     double h = 1.0/N;
-    arma::Mat xx = arma::linspace(0, 1 /*, 100*/);
-    arma::Mat yy = arma::linspace(0, 1 /*, 100*/);
-    //arma::vec XX =   xx * yy ;
+    //arma::Mat<double> xx = arma::linspace(0, 1, 3);// /*, 100*/);
+    //arma::Mat<double> yy = arma::linspace(0, 1, 3);// /*, 100*/);
+    // Note:
+    /**
+     * I will have to pass vector XX by reference into function to store the results
+     * on the grid.
+     * I will have to pass vectors xx & yy to evaluate at each point on the grid,
+     *      each pair made from xx & yy vector elements will make my 2-tuple
+     *      to be passed in.
+     *      Must note, that should I choose to have a n-tuple (n-D) of input data
+     *      it would be wise to make a vector of arma::Mat, to evaluate at 
+     *      each node.
+     * 
+     *      This could be done in a library, this would be an interested thing to try.
+     */
+    //arma::Mat<double> XX(3, 5);//, arma::fill::zeros);
+    net.XX =   net.yy * (net.xx.t()) ;
     std::cout<< "print xx: " << std::endl;
-    xx.print("xx:");
-    yy.print("yy:");
+    net.xx.print("xx:");
+    net.yy.print("yy:");
     //XX.print("XX:");
     
-    std::cout<< "as_scalar(xx*yy): " << (xx.t())*yy<<std::endl;
-
-   // XX = torch::stack(grid).reshape({2, -1});
-    //XX = XX.to(device);
-    //std::cout<< "Grid: \n" << XX << std::endl; 
-    //std::cout<< XX.size(0) << std::endl;
+    std::cout<< "as_scalar(xx*yy): " << net.yy*(net.xx.t())<<std::endl;
+    std::cout<< "matrix XX:\n" << net.XX.n_rows << std::endl;// this is the grid to evaluate on
+    std::cout<< "matrix element:\n" << net.XX.at(0,0) << std::endl;// this is the grid to evaluate on
+    std::cout<< "matrix element:\n" << net.XX.at(1,1) << std::endl;// this is the grid to evaluate on
+    std::cout<< "matrix element:\n" << net.XX.at(2,0) << std::endl;// this is the grid to evaluate on
+   
 
     std::cout << "Evaluation and extract..." << std::endl;
     
@@ -495,6 +572,11 @@ int main() {
 
     torch::Tensor y_pred;
     torch::NoGradGuard no_grad;
+    net.forward_prediction(
+        NN_INPUT_SIZE,
+            NN_OUTPUT_SIZE,
+            NN_HIDDEN_SIZE,
+            NN_DEPTH_SIZE);
     //    //torch.no_grad();
   /*      y_pred = net.forward_prediction(
             NN_INPUT_SIZE,

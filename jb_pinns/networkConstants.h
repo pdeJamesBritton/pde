@@ -24,7 +24,7 @@ const float TARGET_LOSS = 5.0e-5;
 
 const int NN_INPUT_SIZE = 2;
 const int NN_OUTPUT_SIZE = 1;
-const int NN_HIDDEN_SIZE = 2;
+const int NN_HIDDEN_SIZE = 3;
 const int NN_DEPTH_SIZE = 1;
 
 
@@ -43,6 +43,7 @@ class NN: public torch::nn::Module{
 
         //private:
                 std::vector<torch::nn::Linear> vNetwork;
+                
 };
 class HeatPINNetImpl {
   
@@ -56,12 +57,12 @@ class HeatPINNetImpl {
                  std::vector<torch::nn::Linear> Network,
                  torch::Tensor x);
         
-        torch::Tensor forward_prediction(
+        void forward_prediction(
                 int input_layer_size,
                 int output_layer_size,
                 int hidden_layer_size,
-                int depth, 
-                torch::Tensor x);
+                int depth
+        );
 
         int train(torch::Tensor &loss_sum, 
                 HeatPINNetImpl& net,
@@ -78,6 +79,9 @@ class HeatPINNetImpl {
     public: //want to make private and adjust code
         //std::vector< torch::nn::Linear > vNetwork;
         NN model;
+        arma::Mat<double> xx;
+        arma::Mat<double> yy;
+        arma::Mat<double> XX;
 };
 
 void get_whole_dataset_X(float* data);
