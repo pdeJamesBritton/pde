@@ -10,7 +10,7 @@
  * 
  * 
  */
-
+#include <armadillo>
 #include <torch/torch.h>
 //#include "/home/j/.local/lib/python3.10/site-packages/torch/share/cmake/Torch/torch.h"
 #include <math.h>
@@ -169,35 +169,73 @@ torch::Tensor NN::forward(std::vector<torch::nn::Linear> Network, torch::Tensor 
             return x;
 }
 
-torch::Tensor HeatPINNetImpl::forward_prediction(/*HeatPINNetImpl Network,*/ torch::Tensor x){
-            //activation function for the input and hidden layers
-            //std::cout<<" forward"<<std::endl;
-            //torch::Tensor y;
-            torch::Tensor y;
-            int paramcount = 0;
-            torch:: Tensor W, b;
-            auto size = this->model.parameters().size();
-            for ( const auto &p :this->model.parameters())//named_parameters())
-            {
-                if(paramcount != this->model.parameters().size()-1)
-                {
-                    y=x;
-                    if(paramcount%2 == 0){
-                        W=p.to(torch::kDouble);
-                        y=W*y;
-                        paramcount++;
-                    }
-                    if(paramcount %2 != 0 ){
-                        b=p.to(torch::kDouble);
-                        y=y + b;
-                        y=torch::tanh(y);
-                        paramcount++;
-                    }
+torch::Tensor HeatPINNetImpl::forward_prediction(
+        int input_layer_size,
+        int output_layer_size,
+        int hidden_layer_size,
+        int depth, 
+        torch::Tensor x)
+{
+    std::cout<<" in prediction"<<std::endl;
+        std::vector<torch::Tensor> W_Layers, B_Layers, steps;
+        W_Layers.push_back(torch::empty({input_layer_size, hidden_layer_size}));
+        B_Layers.push_back(torch::empty({hidden_layer_size}));
+        steps.push_back(x);
+        std::cout<<"entering first loop"<<std::endl;
+        for(int i=0; i<depth; i++){
+           W_Layers.push_back(torch::empty({hidden_layer_size, hidden_layer_size}));
+           B_Layers.push_back(torch::empty(hidden_layer_size));
+           
+        }
+        W_Layers.push_back(torch::empty({hidden_layer_size, output_layer_size}));
+        W_Layers.push_back(torch::empty({output_layer_size}));
+        
+        torch::Tensor y;
+        int paramcount = 0;
+        int w_count = 0;
+        int b_count = 0;
+        torch:: Tensor W, b;
+        auto size = this->model.parameters().size();
+        std::cout<<"entering second loop"<<std::endl;
+        for ( const auto &p :this->model.parameters())//named_parameters())
+        {
+            std::cout<< "Params #" <<paramcount++<< std::endl;
+            std::cout<< p <<std::endl;
+            std::cout << p.sizes() << std::endl;
+            //std::cout << p.to(torch::kDouble) <<std::endl;
+            //torch::Tensor t;
+            //t = p.to(torch::kDouble);
+            //std::cout << "tensor t: " << t << std::endl;
+            
+               // if(paramcount%2 == 0){
+                    std::cout<<"first "<<std::endl;
+                    std::cout<< p[0,0]<<std::endl;
+                    std::cout<< p[0,1]<<std::endl;
+                    std::cout<< p[1,0]<<std::endl;
+                    std::cout<< p[1,1]<<std::endl;
+                    W_Layers[w_count]=p.to(torch::kDouble);//.to(torch::kDouble);
+                    std::cout<<"after"<<std::endl;
+                    std::cout<< steps.size()<<std::endl;
+                    std::cout<< x.size(1) <<std::endl;
+                    steps.push_back(W_Layers[w_count] * steps[steps.size()-1]);
+                    paramcount++;
+                    w_count++;
+                    std::cout<< "first if " << steps[steps.size()-1] << std::endl;
+                //}
+                if(paramcount %2 != 0 ){
+                    B_Layers[b_count]=p.to(torch::kDouble);
+                    if(w_count + b_count < this->model.parameters().size() )
+                        steps.push_back( torch::tanh( steps[steps.size()-1] + B_Layers[b_count] ) );
+                    else
+                        steps.push_back( steps[steps.size()-1] + B_Layers[b_count] );
+                    paramcount++;
+                    b_count++;
+                    std::cout<< steps[steps.size()-1] << std::endl;
                 }
-                b=p.to(torch::kDouble);
-                y+=b;               
-            }
-            return y;
+            
+        }
+        y = steps[steps.size()-1];
+        return y;
 }
 
 HeatPINNetImpl::HeatPINNetImpl(const std::vector<torch::nn::Linear> &initList): model(initList)
@@ -418,7 +456,7 @@ int main() {
                                     max_eval,
                                     history_size);
 
-    std::cout<< "Parameters: "<<std::endl;
+/*    std::cout<< "Parameters: "<<std::endl;
     int paramcount = 0;
     for ( const auto &p :net.model.parameters())//named_parameters())
     {
@@ -431,18 +469,23 @@ int main() {
         std::cout << "tensor t: " << t << std::endl;
         //std::cout<< std::get<1>(p) <<std::endl;
     }
-
+*/
     // Evaluation
     double h = 1.0/N;
-    torch::Tensor xx;
-    torch::Tensor yy;
-    torch::Tensor XX;
-    xx = torch::range(0, 1 + h, h);
-    yy = torch::arange(0, 1 + h, h);
-    auto grid = torch::meshgrid({xx,yy});
+    arma::Mat xx = arma::linspace(0, 1 /*, 100*/);
+    arma::Mat yy = arma::linspace(0, 1 /*, 100*/);
+    //arma::vec XX =   xx * yy ;
+    std::cout<< "print xx: " << std::endl;
+    xx.print("xx:");
+    yy.print("yy:");
+    //XX.print("XX:");
+    
+    std::cout<< "as_scalar(xx*yy): " << (xx.t())*yy<<std::endl;
 
-    XX = torch::stack(grid).reshape({2, -1});
-    XX = XX.to(device);
+   // XX = torch::stack(grid).reshape({2, -1});
+    //XX = XX.to(device);
+    //std::cout<< "Grid: \n" << XX << std::endl; 
+    //std::cout<< XX.size(0) << std::endl;
 
     std::cout << "Evaluation and extract..." << std::endl;
     
@@ -453,18 +496,28 @@ int main() {
     torch::Tensor y_pred;
     torch::NoGradGuard no_grad;
     //    //torch.no_grad();
-        y_pred = net.forward_prediction(/*modeleval,*/ XX);
+  /*      y_pred = net.forward_prediction(
+            NN_INPUT_SIZE,
+            NN_OUTPUT_SIZE,
+            NN_HIDDEN_SIZE,
+            NN_DEPTH_SIZE,
+            XX); //tensor of meshgrid to be evaluated on.
         std::cout<< "succeded" << std::endl;
     try {
         torch::NoGradGuard no_grad;
     //    //torch.no_grad();
-        y_pred = net.forward_prediction(/*modeleval,*/ XX);
+        y_pred = net.forward_prediction(
+            NN_INPUT_SIZE,
+            NN_OUTPUT_SIZE,
+            NN_HIDDEN_SIZE,
+            NN_DEPTH_SIZE,
+            XX); //tensor of meshgrid to be evaluated on.
         std::cout<< "succeded" << std::endl;
     }
     catch (...){
         std::cout<< "failed"<<std::endl;
     }
-    
+    */
     std::cout<< "Max: " << y_pred.sizes() << std::endl ;
     /*
     double h = 1.0 / N;
@@ -480,13 +533,3 @@ int main() {
     */
     return 0;
 }
-
-
-
-
-
-
-
-
-
-

@@ -17,8 +17,12 @@ cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 project(pinndebug)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 find_package(Torch REQUIRED)
+find_package(Armadillo REQUIRED)
+include_directories(${ARMADILLO_INCLUDE_DIRS})
+#add_executable(foo foo.cc)
+#target_link_libraries(foo ${ARMADILLO_LIBRARIES})
 add_executable(pinndebug pinn.cpp)
-target_link_libraries(pinndebug "${TORCH_LIBRARIES}" ) #MyExternalLib)
+target_link_libraries(pinndebug "${TORCH_LIBRARIES}" ${ARMADILLO_LIBRARIES} ) #MyExternalLib)
 # set(CMAKE_PREFIX_PATH "<libtorch-path>/share/cmake/Torch")
 
 

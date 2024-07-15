@@ -6,7 +6,7 @@
 
 constexpr float PI = 3.14159265358979323846;
 
-const int N = 65;  // grid dimension
+const int N = 2;//65;  // grid dimension
 const float STEP_SIZE = 1.0 / (N - 1);
 const int WHOLE_GRID_SIZE = N * N;
 const int WHOLE_INPUT_DATA_SIZE = WHOLE_GRID_SIZE * 2;
@@ -16,7 +16,7 @@ const int BD_INPUT_SIZE = BD_SIZE * 2;
 const int ADAM_STEPS = 1000;
 
 // max step is set based on experience. 5000 steps make loss at e-5 level.
-const int MAX_STEPS = 5000;
+const int MAX_STEPS = 500;
 // const int MAX_STEPS = 1;  // from ncu compiling
 // criteria for stop training.
 // When loss is at 1.x~e-5, it will stop degrading even the training continues
@@ -56,11 +56,13 @@ class HeatPINNetImpl {
                  std::vector<torch::nn::Linear> Network,
                  torch::Tensor x);
         
-        torch::Tensor forward_prediction
-                (
-                //HeatPINNetImpl Network, 
-                torch::Tensor x
-                );
+        torch::Tensor forward_prediction(
+                int input_layer_size,
+                int output_layer_size,
+                int hidden_layer_size,
+                int depth, 
+                torch::Tensor x);
+
         int train(torch::Tensor &loss_sum, 
                 HeatPINNetImpl& net,
                 torch::Tensor& X,
