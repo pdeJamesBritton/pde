@@ -155,6 +155,7 @@ NN::NN(const std::vector<torch::nn::Linear> &initVector): vNetwork{initVector}{
 
 std::vector<torch::nn::Linear> NN::get_Network(){ return vNetwork;}
 
+/*
 torch::Tensor NN::forward(std::vector<torch::nn::Linear> Network, torch::Tensor x){
             //activation function for the input and hidden layers
             //std::cout<<" forward"<<std::endl;
@@ -168,6 +169,7 @@ torch::Tensor NN::forward(std::vector<torch::nn::Linear> Network, torch::Tensor 
             //std::cout<<"End of forward"<<std::endl;
             return x;
 }
+*/
 
 void HeatPINNetImpl::forward_prediction(
         int input_layer_size,
@@ -268,7 +270,7 @@ void HeatPINNetImpl::forward_prediction(
                 XX(x,y) = copy[copy.size()-1](0,0);
             }
         }
-        XX.print("W:");
+        //XX.print("W:");
         //y = steps[steps.size()-1];
         return  ;//X;
 }
@@ -370,7 +372,7 @@ int HeatPINNetImpl::train(torch::Tensor &loss_sum,
                 else
                     LBFGS_optim.step(closure);
                 // print loss info
-                if (iter % 100 == 0) 
+                if (iter % 1000 == 0) 
                 {
                     std::cout << "  iter=" << iter << ", loss=" << std::setprecision(7) << loss_sum.item<float>();
                     std::cout << ", loss.device().type()=" << loss_sum.device().type() << std::endl;
@@ -473,9 +475,9 @@ int main()
     torch::Tensor loss_sum;
 
     int options = 1;
-    int max_iter = 50000;
-    int max_eval = 50000;
-    int history_size = 50;
+    int max_iter = 100000;
+    int max_eval = 100000;
+    int history_size = 100;
 
     std::cout<<"Model: "<<std::endl;
     std::cout<<net.model<<std::endl;
@@ -581,41 +583,7 @@ int main()
             NN_OUTPUT_SIZE,
             NN_HIDDEN_SIZE,
             NN_DEPTH_SIZE);
-    //    //torch.no_grad();
-  /*      y_pred = net.forward_prediction(
-            NN_INPUT_SIZE,
-            NN_OUTPUT_SIZE,
-            NN_HIDDEN_SIZE,
-            NN_DEPTH_SIZE,
-            XX); //tensor of meshgrid to be evaluated on.
-        std::cout<< "succeded" << std::endl;
-    try {
-        torch::NoGradGuard no_grad;
-    //    //torch.no_grad();
-        y_pred = net.forward_prediction(
-            NN_INPUT_SIZE,
-            NN_OUTPUT_SIZE,
-            NN_HIDDEN_SIZE,
-            NN_DEPTH_SIZE,
-            XX); //tensor of meshgrid to be evaluated on.
-        std::cout<< "succeded" << std::endl;
-    }
-    catch (...){
-        std::cout<< "failed"<<std::endl;
-    }
-    */
+
     std::cout<< "Max: " << net.XX.max() << std::endl ;
-    /*
-    double h = 1.0 / N;
-    torch::Tensor x = torch::arange(0, 1.0 + h, h);
-    torch::Tensor y = torch::arange(0, 1.0 + h, h);
-
-    //   std::cout<< x << std::endl;
-
-    auto grid= torch::meshgrid({x, y});
-    X = torch::stack(grid).reshape({2, -1});
-    X = X.to(device);
-
-    */
     return 0;
 }
