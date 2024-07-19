@@ -176,7 +176,7 @@ void HeatPINNetImpl::forward_prediction(
         int depth
 )
 {
-    std::cout<<" in prediction"<<std::endl;
+    //std::cout<<" in prediction"<<std::endl;
         std::vector<arma::Mat<double>> W_Layers, B_Layers, steps;
         W_Layers.emplace_back(arma::Mat<double>( hidden_layer_size, input_layer_size));
         B_Layers.emplace_back(arma::Mat<double>(hidden_layer_size, 1));
@@ -196,28 +196,28 @@ void HeatPINNetImpl::forward_prediction(
         int b_count = 0;
         //torch:: Tensor W, b;
         auto size = this->model.parameters().size();
-        std::cout<<"entering second loop"<<std::endl;
+        //std::cout<<"entering second loop"<<std::endl;
         //arma::Mat<double> X(N,N, arma::fill::zeros);
         for ( const auto &p :this->model.parameters())//named_parameters())
         {
             if(p.dim() == 2)
             {
-                std::cout<< "dim: " << p.dim() << std::endl;
-                std::cout<< "size0: " <<p.size(0)<< std::endl;
-                std::cout<< "size1: " <<p.size(1)<< std::endl;
+                //std::cout<< "dim: " << p.dim() << std::endl;
+                //std::cout<< "size0: " <<p.size(0)<< std::endl;
+                //std::cout<< "size1: " <<p.size(1)<< std::endl;
                 for(int i = 0; i< p.size(0); i++)
                 {
                     for(int j = 0; j < p.size(1); j++)
                     {
-                        std::cout<< "("<<i<<", "<<j<<")"<<std::endl;
+                        //std::cout<< "("<<i<<", "<<j<<")"<<std::endl;
                         W_Layers[w_count](i,j) = p[i][j].item<double>();
                     }
                 }
                 w_count++;
             }else if(p.dim() ==1)
             {
-                std::cout<< "dim: " << p.dim() << std::endl;
-                std::cout<< "size0: " <<p.size(0)<< std::endl;
+                //std::cout<< "dim: " << p.dim() << std::endl;
+                //std::cout<< "size0: " <<p.size(0)<< std::endl;
                 for(int i =0; i < p.size(0); i++)
                 {
                     B_Layers[b_count](i) = p[i].item<double>();
@@ -228,6 +228,7 @@ void HeatPINNetImpl::forward_prediction(
 
             
         }
+        /*
         for(auto &W : W_Layers)
         {
             W.print("W:");
@@ -238,6 +239,7 @@ void HeatPINNetImpl::forward_prediction(
             B.print("B:");
             //B_Layers.print("B:");
         }
+        */
         // now for iterating through data-grid in column-major.
         arma::Mat<double> xy_node(input_layer_size,1);
     
@@ -246,31 +248,32 @@ void HeatPINNetImpl::forward_prediction(
             for(int y=0; y<yy.size(); y++)
             {
                 std::vector<arma::Mat<double>> copy(W_Layers);
-                xy_node(0,0) = xx(x);
-                xy_node(1,0) = yy(y);
-                std::cout<<"line 250:"<<std::endl;       
+                //xy_node(0,0) = xx(x);
+                //xy_node(1,0) = yy(y);
+                //std::cout<<"line 250:"<<std::endl;       
                 // input layer
                 copy[0] = copy[0] * xy_node + B_Layers[0];
-                std::cout<<"line 253"<<std::endl;
-                std::cout<<"( "<<x<<","<<y<<")"<<std::endl;
+                //std::cout<<"line 253"<<std::endl;
+                //std::cout<<"( "<<x<<","<<y<<")"<<std::endl;
                 for(int l=1; l<copy.size(); l++)
                 {
                     for( auto &W : copy[l-1])
                     {
                         W = std::tanh(W);
                     }
-                    std::cout<<"layer: "<<l<<std::endl;
+                    //std::cout<<"layer: "<<l<<std::endl;
                     copy[l] = copy[l] * copy[l-1] + B_Layers[l];
                 }
-                copy[copy.size()-1].print("result: ");
+                //copy[copy.size()-1].print("result: ");
                 XX(x,y) = copy[copy.size()-1](0,0);
             }
         }
+        XX.print("W:");
         //y = steps[steps.size()-1];
         return  ;//X;
 }
 
-HeatPINNetImpl::HeatPINNetImpl(const std::vector<torch::nn::Linear> &initList): model(initList), xx(arma::linspace(0, 1, 3)), yy(arma::linspace(0, 1, 3)), XX(3,3, arma::fill::zeros)
+HeatPINNetImpl::HeatPINNetImpl(const std::vector<torch::nn::Linear> &initList): model(initList), xx(arma::linspace(0, 1, N)), yy(arma::linspace(0, 1, N)), XX(N,N, arma::fill::zeros)
             //int input_layer_size, int output_layer_size, int hidden_layer_size)
             
             
@@ -410,7 +413,8 @@ std::vector<torch::nn::Linear> vMake_Layers(
         return vMake_Layers;
 }
 
-int main() {
+int main() 
+{
     std::cout << "####### A cpp torch example with PINN heat equation. #######\n" << std::endl;
 
     /**
@@ -488,13 +492,13 @@ int main() {
                                     max_eval,
                                     history_size);
 
-    std::cout<< "Parameters: "<<std::endl;
-    int paramcount = 0;
-    double dum = 0;
-    for ( const auto &p :net.model.parameters())//named_parameters())
-    {
-        std::cout<< "Params #" <<paramcount++<< std::endl;
-        std::cout<< p <<std::endl;
+    //std::cout<< "Parameters: "<<std::endl;
+    //int paramcount = 0;
+    //double dum = 0;
+    //for ( const auto &p :net.model.parameters())//named_parameters())
+    //{
+    //    std::cout<< "Params #" <<paramcount++<< std::endl;
+    //    std::cout<< p <<std::endl;
         //std::cout << p[0] << std::endl;
         //std::cout << p.to(torch::kDouble).data[0,0] <<std::endl;
         /*std::cout<< p[0][0] << std::endl;
@@ -505,8 +509,8 @@ int main() {
         std::cout<< p[2][0] << std::endl;
         std::cout<< p[2][1] << std::endl;
         */
-        std::cout<< "p.size(0): " << p.size(0)<<std::endl;// = columns
-
+        //std::cout<< "p.size(0): " << p.size(0)<<std::endl;// = columns
+        /*
         for(int i = 0; i< p.size(0); i++)
         {   
             if(p.dim() >1){
@@ -525,13 +529,13 @@ int main() {
                 std::cout<< p[i] << std::endl;
             }
         }
-        
+        */
         //std::cout << p[0][0] <<std::endl;
         //torch::Tensor t;
         //t = p.to(torch::kDouble);
         //std::cout << "tensor t: " << t << std::endl;
         //std::cout<< std::get<1>(p) <<std::endl;
-    }
+    //}
 
     // Evaluation
     double h = 1.0/N;
@@ -551,7 +555,7 @@ int main() {
      *      This could be done in a library, this would be an interested thing to try.
      */
     //arma::Mat<double> XX(3, 5);//, arma::fill::zeros);
-    net.XX =   net.yy * (net.xx.t()) ;
+    /*net.XX =   net.yy * (net.xx.t()) ;
     std::cout<< "print xx: " << std::endl;
     net.xx.print("xx:");
     net.yy.print("yy:");
@@ -562,7 +566,7 @@ int main() {
     std::cout<< "matrix element:\n" << net.XX.at(0,0) << std::endl;// this is the grid to evaluate on
     std::cout<< "matrix element:\n" << net.XX.at(1,1) << std::endl;// this is the grid to evaluate on
     std::cout<< "matrix element:\n" << net.XX.at(2,0) << std::endl;// this is the grid to evaluate on
-   
+   */
 
     std::cout << "Evaluation and extract..." << std::endl;
     
@@ -600,7 +604,7 @@ int main() {
         std::cout<< "failed"<<std::endl;
     }
     */
-    std::cout<< "Max: " << y_pred.sizes() << std::endl ;
+    std::cout<< "Max: " << net.XX.max() << std::endl ;
     /*
     double h = 1.0 / N;
     torch::Tensor x = torch::arange(0, 1.0 + h, h);
