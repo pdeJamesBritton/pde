@@ -250,8 +250,8 @@ void HeatPINNetImpl::forward_prediction(
             for(int y=0; y<yy.size(); y++)
             {
                 std::vector<arma::Mat<double>> copy(W_Layers);
-                //xy_node(0,0) = xx(x);
-                //xy_node(1,0) = yy(y);
+                xy_node(0,0) = xx(x);
+                xy_node(1,0) = yy(y);
                 //std::cout<<"line 250:"<<std::endl;       
                 // input layer
                 copy[0] = copy[0] * xy_node + B_Layers[0];
