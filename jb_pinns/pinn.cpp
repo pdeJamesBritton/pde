@@ -215,8 +215,14 @@ int HeatPINNetImpl::train(
                          )
 {
             int iter = 0;
-			// optimizer declaration. All parameters are trying to match Python
-			torch::optim::Adam adam_optim(net.model.parameters(), torch::optim::AdamOptions(1e-3));  // default Adam lr
+			// optimizer declaration.
+            // using amsgrad(true) provides smoother convergence without the jumping around
+            // see:
+            //      https://openreview.net/forum?id=ryQu7f-RZ
+            //      and
+            //      https://pytorch.org/docs/stable/generated/torch.optim.Adam.html
+			torch::optim::Adam adam_optim(net.model.parameters(), torch::optim::AdamOptions(1e-3).amsgrad(true));  // default Adam lr
+            //adam_optim::amsgrad(true);
 			
             
             // Python default value ref: https://pytorch.org/docs/stable/generated/torch.optim.LBFGS.html
@@ -231,11 +237,12 @@ int HeatPINNetImpl::train(
             while(iter <MAX_STEPS)
             {
                 auto closure = [&]() {
-                    LBFGS_optim.zero_grad();
+                    LBFGS_optim.zero_grad(); // why is this needed?
                     loss_sum = get_total_loss(net, X, X_train, Y_train, device);
                     loss_sum.backward();
                     return loss_sum;
                 };
+                //adam_optim.zero_grad();
                 adam_optim.step(closure);
                 /**
                  * if(iter < ADAM_STEPS)
