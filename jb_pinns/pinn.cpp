@@ -1,7 +1,8 @@
 /**
  * @author James Britton
- * @date 2024-06-26
- * @brief taking orriginal code repository for github, completing it and making it into a class structure
+ * @date 2024-07-19 
+ * @brief An implementation of a PINN in C++.  This is an expantion and reorganization of the referanced code.
+ * 
  * 
  * @ref addapted code from:
  * https://github.com/nathanwbrei/phasm/tree/main/examples/pinn_pde_solver
@@ -12,7 +13,6 @@
  */
 #include <armadillo>
 #include <torch/torch.h>
-//#include "/home/j/.local/lib/python3.10/site-packages/torch/share/cmake/Torch/torch.h"
 #include <math.h>
 #include <iostream>
 #include "/home/j/OneDrive/James/CompSci/004_Summer_2024/ML_PINNs/pde/jb_pinns/networkConstants.h"
@@ -20,21 +20,21 @@
 
 using namespace torch::indexing;   // for tensor indexing
 
-
-/////////////////////////////////
-void get_whole_dataset_X(float* data) 
+void get_whole_dataset_X(float* data)
 {
     for (int ix = 0; ix < N; ix++)
-        for (int iy = 0; iy < N; iy++) {
+        for (int iy = 0; iy < N; iy++) 
+        {
             int idx_base = 2 * (ix * N + iy);
             data[idx_base] = ix * STEP_SIZE;
             data[idx_base + 1] = iy * STEP_SIZE;
         }
 }
 
-void get_bc_dataset_xTrain(float* data) 
+void get_bc_dataset_xTrain(float* data)
 {
-    for (int i = 0; i < N; i++) {
+    for (int i = 0; i < N; i++)
+    {
         int idx_base = 2 * i;
         float num = i * STEP_SIZE;
         // x: left, right, down, top
@@ -52,7 +52,7 @@ void get_bc_dataset_xTrain(float* data)
     }
 }
 
-float get_pde_f_term(float x, float y) 
+float get_pde_f_term(float x, float y)
 {
     /**
      * Get the f term of the PDE.
@@ -61,15 +61,15 @@ float get_pde_f_term(float x, float y)
     return sin(PI * x) * sin(PI * y);
 }
 
-void get_fterm_dataset_f(float* data) 
+void get_fterm_dataset_f(float* data)
 {
     for (int ix = 0; ix < N; ix++)
-        for (int iy = 0; iy < N; iy++) {
+        for (int iy = 0; iy < N; iy++)
             data[ix * N + iy] = get_pde_f_term(ix * STEP_SIZE, iy * STEP_SIZE);
-        }
 }
 
-torch::Tensor get_pde_loss(torch::Tensor& u, torch::Tensor& X, torch::Device& device){
+torch::Tensor get_pde_loss(torch::Tensor& u, torch::Tensor& X, torch::Device& device)
+{
     /**
      * Get the pde loss based on the NN forward results.
      * Calculate the gradients and the pde terms.
@@ -97,7 +97,7 @@ torch::Tensor get_pde_loss(torch::Tensor& u, torch::Tensor& X, torch::Device& de
     float f_data[WHOLE_GRID_SIZE];
     get_fterm_dataset_f(f_data);
     // below has the form of:
-    // Equation: - 2 * pi * pi * sin(pi * x) * sin(pi * y) 
+    // Equation: - 2 * pi * pi * sin(pi * x) * sin(pi * y)
     torch::Tensor f_X = -2.0 * PI * PI * torch::from_blob(f_data, {WHOLE_GRID_SIZE}).to(device);
 
     return torch::mse_loss(du_dxx + du_dyy, f_X);
@@ -109,24 +109,45 @@ torch::Tensor get_total_loss(
         torch::Tensor& X_train,
         torch::Tensor& Y_train,
         torch::Device& device
-        ) 
+        )
 {
     /**
      * Calculate the loss of each step.
      * loss_train is from the training dataset. loss_pde is from the whole dataset.
      */
-    //std::cout<<"IN get_total_loss"<<std::endl;
-    
     torch::Tensor u = net.forward(net.model.vNetwork, X);
-    //std::cout<< "about to mse_loss"<<std::endl;
-    return torch::mse_loss(net.forward(net.model.vNetwork,X_train), Y_train) + get_pde_loss(u, X, device);
+    return  torch::mse_loss(net.forward(net.model.vNetwork,X_train), Y_train) 
+            +
+            get_pde_loss(u, X, device);
 }
-
 
 std::vector<torch::nn::Linear> vLayers( int input_layer_size,
                                         int output_layer_size,
                                         int hidden_layer_size,
-                                        int depth){// depth is the number of hidden layers
+                                        int depth)// depth is the number of hidden layers
+{
+    /**
+     * I took the idea and modified it below to make a vector of layers.
+     * In which you declare in the function call.
+     *      Declare the NN to match the Python code in
+     *      https://github.com/nathanwbrei/phasm/blob/main/python/PhasmExampleHeatEquation.ipynb
+     *      NN(
+                (layers): Sequential(
+                    (input):            Linear(in_features=2, out_features=20, bias=True)
+                    (input_activation): Tanh()
+                    (hidden_0):         Linear(in_features=20, out_features=20, bias=True)
+                    (activation_0):     Tanh()
+                    (hidden_1):         Linear(in_features=20, out_features=20, bias=True)
+                    (activation_1):     Tanh()
+                    (hidden_2):         Linear(in_features=20, out_features=20, bias=True)
+                    (activation_2):     Tanh()
+                    (hidden_3):         Linear(in_features=20, out_features=20, bias=True)
+                    (activation_3):     Tanh()
+                    (output):           Linear(in_features=20, out_features=1, bias=True)
+          )
+        )
+     */
+    
     // generats vector of layers with choosen depth
     std::vector<torch::nn::Linear> vLayers;
     vLayers.emplace_back(torch::nn::Linear(input_layer_size, hidden_layer_size));
@@ -136,40 +157,115 @@ std::vector<torch::nn::Linear> vLayers( int input_layer_size,
     vLayers.emplace_back(torch::nn::Linear(hidden_layer_size, output_layer_size));
     return vLayers;
 }
-NN::NN(const std::vector<torch::nn::Linear> &initVector): vNetwork{initVector}{
-      // error checking to be added.
-            std::cout<<"Registering Module"<<std::endl;
-            //register_parameter("input", vNetwork[0]);
-            register_module("input", vNetwork[0]);
-            std::string hidden;
-            int i=1;
-            for(; i<(int)vNetwork.size()-1; i++){
-                hidden = "hidden_";
-                //register_parameter(hidden.append(std::to_string(i)), vNetwork[i]);
-                register_module(hidden.append(std::to_string(i)), vNetwork[i]);
-            }
-            //register_parameter("output", vNetwork[i]);
-            register_module("output", vNetwork[i]);
 
+NN::NN(const std::vector<torch::nn::Linear> &initVector): vNetwork{initVector}
+{
+    // error checking to be added.
+    std::cout<<"Registering Module"<<std::endl;
+    //register_parameter("input", vNetwork[0]);
+    register_module("input", vNetwork[0]);
+    std::string hidden;
+    int i=1;
+    for(; i<(int)vNetwork.size()-1; i++)
+    {
+        hidden = "hidden_";
+        //register_parameter(hidden.append(std::to_string(i)), vNetwork[i]);
+        register_module(hidden.append(std::to_string(i)), vNetwork[i]);
+    }
+    //register_parameter("output", vNetwork[i]);
+    register_module("output", vNetwork[i]);
 }
 
 std::vector<torch::nn::Linear> NN::get_Network(){ return vNetwork;}
 
-/*
-torch::Tensor NN::forward(std::vector<torch::nn::Linear> Network, torch::Tensor x){
+HeatPINNetImpl::HeatPINNetImpl(const std::vector<torch::nn::Linear> &initList)
+    : 
+    model(initList),
+    xx(arma::linspace(0, 1, N)),
+    yy(arma::linspace(0, 1, N)),
+    XX(N,N, arma::fill::zeros)
+    //int input_layer_size, int output_layer_size, int hidden_layer_size)
+{            
+    
+        
+}
+
+
+torch::Tensor HeatPINNetImpl::forward(std::vector<torch::nn::Linear> Network, torch::Tensor x)
+{
             //activation function for the input and hidden layers
-            //std::cout<<" forward"<<std::endl;
             int i = 0;
             for(; i< Network.size()-1; i++)
-            {
-              //  std::cout<<" forward in loop at:"<< std::to_string(i)<<std::endl;
                 x=torch::tanh(Network[i](x));
-            }
             x = Network[i](x);
-            //std::cout<<"End of forward"<<std::endl;
             return x;
 }
-*/
+
+int HeatPINNetImpl::train(
+                            torch::Tensor &loss_sum, 
+                            HeatPINNetImpl& net,
+                            torch::Tensor& X,
+                            torch::Tensor& X_train,
+                            torch::Tensor& Y_train,
+                            torch::Device& device,
+                            int options,
+                            int max_iter,
+                            int max_eval,
+                            int history_size
+                         )
+{
+            int iter = 0;
+			// optimizer declaration. All parameters are trying to match Python
+			torch::optim::Adam adam_optim(net.model.parameters(), torch::optim::AdamOptions(1e-3));  // default Adam lr
+			
+            
+            // Python default value ref: https://pytorch.org/docs/stable/generated/torch.optim.LBFGS.html
+            torch::optim::LBFGSOptions 
+                LBFGS_optim_options 
+                =
+                torch::optim::LBFGSOptions(options).max_iter(max_iter).max_eval(max_eval).history_size(history_size);
+            torch::optim::LBFGS LBFGS_optim(net.model.parameters(), LBFGS_optim_options);            
+            
+            std::cout<<std::endl;
+            std::cout<<"Entering training loop"<<std::endl;
+            while(iter <MAX_STEPS)
+            {
+                auto closure = [&]() {
+                    LBFGS_optim.zero_grad();
+                    loss_sum = get_total_loss(net, X, X_train, Y_train, device);
+                    loss_sum.backward();
+                    return loss_sum;
+                };
+                adam_optim.step(closure);
+                /**
+                 * if(iter < ADAM_STEPS)
+                 *      adam_optim.step(closure);
+                 * else
+                 *      LBFGS_optim.step(closure);
+                 * 
+                */
+
+                // print loss info
+                if (iter % 1000 == 0)
+                {
+                    std::cout << "  iter=" << iter << ", loss=" << std::setprecision(7) << loss_sum.item<float>();
+                    std::cout << ", loss.device().type()=" << loss_sum.device().type() << std::endl;
+                }
+                // stop training
+                if (loss_sum.item<float>() < TARGET_LOSS)
+                {
+                    iter ++;
+                    break;
+	            }
+                iter ++;
+            }
+
+            std::cout << "\nTraining stopped." << std::endl;
+            std::cout << "Final iter=" << iter - 1 << ", loss=" << std::setprecision(7) << loss_sum.item<float>();
+            std::cout << ", loss.device().type()=" << loss_sum.device().type() << std::endl;
+
+            return iter;
+        }
 
 void HeatPINNetImpl::forward_prediction(
         int input_layer_size,
@@ -178,244 +274,62 @@ void HeatPINNetImpl::forward_prediction(
         int depth
 )
 {
-    //std::cout<<" in prediction"<<std::endl;
         std::vector<arma::Mat<double>> W_Layers, B_Layers, steps;
         W_Layers.emplace_back(arma::Mat<double>( hidden_layer_size, input_layer_size));
         B_Layers.emplace_back(arma::Mat<double>(hidden_layer_size, 1));
-        //steps.push_back(*XX);
         std::cout<<"entering first loop"<<std::endl;
+    
         for(int i=0; i<depth; i++){
            W_Layers.emplace_back(arma::Mat<double>(hidden_layer_size, hidden_layer_size));
            B_Layers.emplace_back(arma::Mat<double>(hidden_layer_size,1));
-           
         }
         W_Layers.emplace_back(arma::Mat<double>( output_layer_size, hidden_layer_size));
         B_Layers.emplace_back(arma::Mat<double>(output_layer_size,1));
-        
-        //torch::Tensor y;
+
         int paramcount = 0;
         int w_count = 0;
         int b_count = 0;
-        //torch:: Tensor W, b;
         auto size = this->model.parameters().size();
-        //std::cout<<"entering second loop"<<std::endl;
-        //arma::Mat<double> X(N,N, arma::fill::zeros);
+
         for ( const auto &p :this->model.parameters())//named_parameters())
         {
             if(p.dim() == 2)
             {
-                //std::cout<< "dim: " << p.dim() << std::endl;
-                //std::cout<< "size0: " <<p.size(0)<< std::endl;
-                //std::cout<< "size1: " <<p.size(1)<< std::endl;
                 for(int i = 0; i< p.size(0); i++)
-                {
                     for(int j = 0; j < p.size(1); j++)
-                    {
-                        //std::cout<< "("<<i<<", "<<j<<")"<<std::endl;
                         W_Layers[w_count](i,j) = p[i][j].item<double>();
-                    }
-                }
                 w_count++;
             }else if(p.dim() ==1)
             {
-                //std::cout<< "dim: " << p.dim() << std::endl;
-                //std::cout<< "size0: " <<p.size(0)<< std::endl;
                 for(int i =0; i < p.size(0); i++)
-                {
                     B_Layers[b_count](i) = p[i].item<double>();
-                }
                 b_count++;
-
             }
-
-            
         }
-        /*
-        for(auto &W : W_Layers)
-        {
-            W.print("W:");
-            //B_Layers.print("B:");
-        }
-        for(auto &B : B_Layers)
-        {
-            B.print("B:");
-            //B_Layers.print("B:");
-        }
-        */
         // now for iterating through data-grid in column-major.
         arma::Mat<double> xy_node(input_layer_size,1);
-    
+
         for(int x=0; x<xx.size(); x++)
-        {
             for(int y=0; y<yy.size(); y++)
             {
                 std::vector<arma::Mat<double>> copy(W_Layers);
                 xy_node(0,0) = xx(x);
                 xy_node(1,0) = yy(y);
-                //std::cout<<"line 250:"<<std::endl;       
                 // input layer
                 copy[0] = copy[0] * xy_node + B_Layers[0];
-                //std::cout<<"line 253"<<std::endl;
-                //std::cout<<"( "<<x<<","<<y<<")"<<std::endl;
+
                 for(int l=1; l<copy.size(); l++)
                 {
                     for( auto &W : copy[l-1])
-                    {
                         W = std::tanh(W);
-                    }
-                    //std::cout<<"layer: "<<l<<std::endl;
                     copy[l] = copy[l] * copy[l-1] + B_Layers[l];
                 }
-                //copy[copy.size()-1].print("result: ");
                 XX(x,y) = copy[copy.size()-1](0,0);
             }
-        }
-        //XX.print("W:");
-        //y = steps[steps.size()-1];
-        return  ;//X;
+        return;
 }
 
-HeatPINNetImpl::HeatPINNetImpl(const std::vector<torch::nn::Linear> &initList): model(initList), xx(arma::linspace(0, 1, N)), yy(arma::linspace(0, 1, N)), XX(N,N, arma::fill::zeros)
-            //int input_layer_size, int output_layer_size, int hidden_layer_size)
-            
-            
-            
-{            
-    /**
-     * This I have addapted
-     * 
-     * Declare the NN to match the Python code in
-     * https://github.com/nathanwbrei/phasm/blob/main/python/PhasmExampleHeatEquation.ipynb
-     * NN(
-          (layers): Sequential(
-            (input): Linear(in_features=2, out_features=20, bias=True)
-            (input_activation): Tanh()
-            (hidden_0): Linear(in_features=20, out_features=20, bias=True)
-            (activation_0): Tanh()
-            (hidden_1): Linear(in_features=20, out_features=20, bias=True)
-            (activation_1): Tanh()
-            (hidden_2): Linear(in_features=20, out_features=20, bias=True)
-            (activation_2): Tanh()
-            (hidden_3): Linear(in_features=20, out_features=20, bias=True)
-            (activation_3): Tanh()
-            (output): Linear(in_features=20, out_features=1, bias=True)
-          )
-        )
-     */
-    //this->model(initList);
-    //public:
-        //this->vhNetwork=inithList;
-        //this->model =  NN(get_Network());
-        
-    //private:
-        //std::vector< torch::nn::Linear > vhNetwork;
-       // NN model;
-       
-        
-}
-
-//NN *HeatPINNetImpl::get_model(){ return this->model;}
-
-torch::Tensor HeatPINNetImpl::forward(std::vector<torch::nn::Linear> Network, torch::Tensor x){
-            //activation function for the input and hidden layers
-            //std::cout<<" forward"<<std::endl;
-            int i = 0;
-            for(; i< Network.size()-1; i++)
-            {
-              //  std::cout<<" forward in loop at:"<< std::to_string(i)<<std::endl;
-                x=torch::tanh(Network[i](x));
-            }
-            x = Network[i](x);
-            //std::cout<<"End of forward"<<std::endl;
-            return x;
-}
-
-
-
-int HeatPINNetImpl::train(torch::Tensor &loss_sum, 
-                HeatPINNetImpl& net,
-                torch::Tensor& X,
-                torch::Tensor& X_train,
-                torch::Tensor& Y_train,
-                torch::Device& device,
-                int options,
-                int max_iter,
-                int max_eval,
-                int history_size)
-        {
-            int iter = 0;
-			// optimizer declaration. All parameters are trying to match Python
-			torch::optim::Adam adam_optim(net.model.parameters(), torch::optim::AdamOptions(1e-3));  // default Adam lr
-			// Python default value ref: https://pytorch.org/docs/stable/generated/torch.optim.LBFGS.html
-			torch::optim::LBFGSOptions LBFGS_optim_options =
-            torch::optim::LBFGSOptions(options).max_iter(max_iter).max_eval(max_eval).history_size(history_size);
-			torch::optim::LBFGS LBFGS_optim(net.model.parameters(), LBFGS_optim_options);
-            std::cout<<std::endl;
-            std::cout<<"Entering training loop"<<std::endl;
-            while(iter <MAX_STEPS)
-            {
-                auto closure = [&]() {
-                    //std::cout<< "In loop"<<std::endl;
-                    LBFGS_optim.zero_grad();
-                    //std::cout<< "In loop"<<std::endl;
-                    loss_sum = get_total_loss(net, X, X_train, Y_train, device);
-                    //std::cout<< "In loop"<<std::endl;
-                    loss_sum.backward();
-                    //std::cout<< "In loop"<<std::endl;
-                    return loss_sum;
-                };
-                
-                if(iter < ADAM_STEPS){
-                    adam_optim.step(closure);
-                    
-                }
-                else
-                    LBFGS_optim.step(closure);
-                // print loss info
-                if (iter % 1000 == 0) 
-                {
-                    std::cout << "  iter=" << iter << ", loss=" << std::setprecision(7) << loss_sum.item<float>();
-                    std::cout << ", loss.device().type()=" << loss_sum.device().type() << std::endl;
-                }
-                // stop training
-                if (loss_sum.item<float>() < TARGET_LOSS)   
-                {
-                    iter ++;
-                    break;
-	            }
-
-                iter ++;
-            }
-            
-            std::cout << "\nTraining stopped." << std::endl;
-            std::cout << "Final iter=" << iter - 1 << ", loss=" << std::setprecision(7) << loss_sum.item<float>();
-            std::cout << ", loss.device().type()=" << loss_sum.device().type() << std::endl;
-            
-            return iter;
-    
-        }
-
-//TORCH_MODULE(HeatPINNetImpl); //? a wrapped shared_ptr, see official tutorial
-//WHAT TO DO WITH ABOVE?
-
-//NN HeatPINNetImpl::get_model( return model);
-
-std::vector<torch::nn::Linear> vMake_Layers(
-        int input_layer_size,
-        int output_layer_size,
-        int hidden_layer_size,
-        int depth
-){
-        std::vector<torch::nn::Linear> vMake_Layers;
-        vMake_Layers.push_back(torch::nn::Linear(input_layer_size, hidden_layer_size));
-        for(int i=0; i<depth; i++)
-           vMake_Layers.push_back(torch::nn::Linear(hidden_layer_size, hidden_layer_size));
-        vMake_Layers.push_back(torch::nn::Linear(hidden_layer_size, output_layer_size));
-        
-        return vMake_Layers;
-}
-
-int main() 
+int main()
 {
     std::cout << "####### A cpp torch example with PINN heat equation. #######\n" << std::endl;
 
@@ -428,7 +342,7 @@ int main()
     torch::Device device(device_str);
     std::cout << (cuda_available ? "CUDA available. Training on GPU.\n" : "Training on CPU.\n") << '\n';
 
-    std::vector<torch::nn::Linear> layers= vMake_Layers(NN_INPUT_SIZE, NN_OUTPUT_SIZE, NN_HIDDEN_SIZE, NN_DEPTH_SIZE);
+    std::vector<torch::nn::Linear> layers= vLayers(NN_INPUT_SIZE, NN_OUTPUT_SIZE, NN_HIDDEN_SIZE, NN_DEPTH_SIZE);
     auto net = HeatPINNetImpl( layers );  // init a network model
     net.model.to(device);
 
@@ -447,7 +361,7 @@ int main()
     float X_train_data[BD_INPUT_SIZE];
     get_bc_dataset_xTrain(X_train_data);
     X_train = torch::from_blob(X_train_data, {BD_SIZE, NN_INPUT_SIZE}).to(device);
-    //X_train = torch::from_blob(X_train_data, {BD_SIZE, NN_INPUT_SIZE}, options);
+    
     std::cout << "X_train sizes: " << X_train.sizes() << std::endl;
     std::cout << "X_train.device().type(): " << X_train.device().type() << std::endl;
     std::cout << "X_train.requires_grad(): " << X_train.requires_grad() << std::endl;
@@ -460,10 +374,12 @@ int main()
     std::cout << "X.device().index(): " << X.device().index() << std::endl;
     std::cout << "X.requires_grad(): " << X.requires_grad() << std::endl;
 
-    /*
-     * Training process
-     *  The training steps are trying to match the Python script.
-     *  First 1000 steps use Adam, and remaining steps use LBFGS.
+    /**
+     * 
+     * 
+     * 
+     * Training process:
+     *      After testing, Adam was used for all iterations
      */
     // optimizer declaration. All parameters are trying to match Python
     torch::optim::Adam adam_optim(net.model.parameters(), torch::optim::AdamOptions(1e-3));  // default Adam lr
@@ -494,88 +410,15 @@ int main()
                                     max_eval,
                                     history_size);
 
-    //std::cout<< "Parameters: "<<std::endl;
-    //int paramcount = 0;
-    //double dum = 0;
-    //for ( const auto &p :net.model.parameters())//named_parameters())
-    //{
-    //    std::cout<< "Params #" <<paramcount++<< std::endl;
-    //    std::cout<< p <<std::endl;
-        //std::cout << p[0] << std::endl;
-        //std::cout << p.to(torch::kDouble).data[0,0] <<std::endl;
-        /*std::cout<< p[0][0] << std::endl;
-        std::cout<< p[0][1] << std::endl;
-        std::cout<< p[1][0] << std::endl;
-        std::cout<< p[1][1] << std::endl;
-
-        std::cout<< p[2][0] << std::endl;
-        std::cout<< p[2][1] << std::endl;
-        */
-        //std::cout<< "p.size(0): " << p.size(0)<<std::endl;// = columns
-        /*
-        for(int i = 0; i< p.size(0); i++)
-        {   
-            if(p.dim() >1){
-                for( int j = 0; j < p.size(1); j++)
-                {   
-                    //std::cout<< "p.size(0):" << p.size(0) << std::endl; //rows
-                    std::cout<< "( i="<< i <<", j="<< j <<" )"<< std::endl;                
-                    std::cout<< p[i][j].to(torch::kDouble) << std::endl;
-                    dum = (double)p[i][j].item<double>(); // this is what I need
-                    std::cout<<"\n\n\n"<<std::endl;
-                    std::cout<< "dum: " << dum << std::endl;
-                }
-            }
-            else{
-                std::cout<< "( i="<< i <<" )"<< std::endl;                
-                std::cout<< p[i] << std::endl;
-            }
-        }
-        */
-        //std::cout << p[0][0] <<std::endl;
-        //torch::Tensor t;
-        //t = p.to(torch::kDouble);
-        //std::cout << "tensor t: " << t << std::endl;
-        //std::cout<< std::get<1>(p) <<std::endl;
-    //}
-
+    
     // Evaluation
     double h = 1.0/N;
-    //arma::Mat<double> xx = arma::linspace(0, 1, 3);// /*, 100*/);
-    //arma::Mat<double> yy = arma::linspace(0, 1, 3);// /*, 100*/);
-    // Note:
-    /**
-     * I will have to pass vector XX by reference into function to store the results
-     * on the grid.
-     * I will have to pass vectors xx & yy to evaluate at each point on the grid,
-     *      each pair made from xx & yy vector elements will make my 2-tuple
-     *      to be passed in.
-     *      Must note, that should I choose to have a n-tuple (n-D) of input data
-     *      it would be wise to make a vector of arma::Mat, to evaluate at 
-     *      each node.
-     * 
-     *      This could be done in a library, this would be an interested thing to try.
-     */
-    //arma::Mat<double> XX(3, 5);//, arma::fill::zeros);
-    /*net.XX =   net.yy * (net.xx.t()) ;
-    std::cout<< "print xx: " << std::endl;
-    net.xx.print("xx:");
-    net.yy.print("yy:");
-    //XX.print("XX:");
     
-    std::cout<< "as_scalar(xx*yy): " << net.yy*(net.xx.t())<<std::endl;
-    std::cout<< "matrix XX:\n" << net.XX.n_rows << std::endl;// this is the grid to evaluate on
-    std::cout<< "matrix element:\n" << net.XX.at(0,0) << std::endl;// this is the grid to evaluate on
-    std::cout<< "matrix element:\n" << net.XX.at(1,1) << std::endl;// this is the grid to evaluate on
-    std::cout<< "matrix element:\n" << net.XX.at(2,0) << std::endl;// this is the grid to evaluate on
-   */
-
     std::cout << "Evaluation and extract..." << std::endl;
     
     NN modeleval = net.model;
     modeleval.eval();
-    //net.model.eval();
-
+    
     torch::Tensor y_pred;
     torch::NoGradGuard no_grad;
     net.forward_prediction(

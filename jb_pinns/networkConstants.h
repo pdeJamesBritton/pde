@@ -13,9 +13,10 @@ const int WHOLE_INPUT_DATA_SIZE = WHOLE_GRID_SIZE * 2;
 const int BD_SIZE = 4 * N;
 const int BD_INPUT_SIZE = BD_SIZE * 2;
 
-const int ADAM_STEPS = 100000;
+//const int ADAM_STEPS = 100000;
 
-// max step is set based on experience. 5000 steps make loss at e-5 level.
+// max step is set based on experience. 
+// need to adjust more
 const int MAX_STEPS = 100000;
 // const int MAX_STEPS = 1;  // from ncu compiling
 // criteria for stop training.
@@ -31,14 +32,6 @@ const int NN_DEPTH_SIZE = 4;
 class NN: public torch::nn::Module{
         public:
                 NN(const std::vector<torch::nn::Linear> &initVector);
-
-                torch::Tensor forward(std::vector<torch::nn::Linear> Network,torch::Tensor x);
-                /*torch::Tensor forward_prediction
-                (
-                HeatPINNetImpl Network, 
-                torch::Tensor x
-                );
-                */
                 std::vector<torch::nn::Linear> get_Network();
 
         //private:
