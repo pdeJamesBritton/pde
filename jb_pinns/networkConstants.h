@@ -6,7 +6,7 @@
 
 constexpr float PI = 3.14159265358979323846;
 
-const int N = 100;  // grid dimension
+const int N = 65;  // grid dimension
 const float STEP_SIZE = 1.0 / (N - 1);
 const int WHOLE_GRID_SIZE = N * N;
 const int WHOLE_INPUT_DATA_SIZE = WHOLE_GRID_SIZE * 2;
@@ -17,7 +17,7 @@ const int BD_INPUT_SIZE = BD_SIZE * 2;
 
 // max step is set based on experience. 
 // need to adjust more
-const int MAX_STEPS = 150000;
+const int MAX_STEPS = 150;
 // const int MAX_STEPS = 1;  // from ncu compiling
 // criteria for stop training.
 // When loss is at 1.x~e-5, it will stop degrading even the training continues
@@ -25,8 +25,8 @@ const float TARGET_LOSS = 5.0e-5;
 
 const int NN_INPUT_SIZE = 2;
 const int NN_OUTPUT_SIZE = 1;
-const int NN_HIDDEN_SIZE = 20;
-const int NN_DEPTH_SIZE = 4;
+const int NN_HIDDEN_SIZE = 30;
+const int NN_DEPTH_SIZE = 10;
 
 
 class NN: public torch::nn::Module{

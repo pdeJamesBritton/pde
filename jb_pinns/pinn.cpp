@@ -11,6 +11,7 @@
  * 
  * 
  */
+#include "matplotlibcpp.h"
 #include <armadillo>
 #include <torch/torch.h>
 #include <math.h>
@@ -435,5 +436,9 @@ int main()
             NN_DEPTH_SIZE);
 
     std::cout<< "Max: " << net.XX.max() << std::endl ;
+
+    matplotlibcpp::plot(net.xx);
+    matplotlibcpp::show();
+
     return 0;
 }
