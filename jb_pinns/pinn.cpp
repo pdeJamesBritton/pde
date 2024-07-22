@@ -11,6 +11,19 @@
  * 
  * 
  */
+//#include <ROOT/TFile.h>
+#include <TFile.h>
+#include <TNtuple.h>
+#include <TH2.h>
+#include <TProfile.h>
+#include <TCanvas.h>
+#include <TFrame.h>
+#include <TROOT.h>
+#include <TSystem.h>
+#include <TRandom3.h>
+#include <TBenchmark.h>
+#include <TInterpreter.h>
+
 #include "matplotlibcpp.h"
 #include <armadillo>
 #include <torch/torch.h>
